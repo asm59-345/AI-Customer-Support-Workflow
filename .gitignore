@@ -1,0 +1,101 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# IDE & tool directories (should NOT go to HF)
+.claude/
+.cursor/
+.github/
+.gemini/
+.idea/
+.vscode/
+*.code-workspace
+
+# Vibe check & workflow tools
+.vibecheck/
+workflows/
+CLAUDE.md
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs & temp
+*.log
+*.tmp
+*.bak
+
+# Environment files with secrets
+.env
+.env.*
+
+# Binary / large model files
+*.bin
+*.pt
+*.pth
+*.onnx
+*.pkl
+*.db
+*.sqlite
+
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# IDE & tool directories (should NOT go to HF)
+.claude/
+.cursor/
+.github/
+.gemini/
+.idea/
+.vscode/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs & temp
+*.log
+*.tmp
+*.bak
+
+# Environment files with secrets
+.env
+.env.*
+
+# Large model files (use Git LFS if needed)
+*.bin
+*.pt
+*.pth
+*.onnx
+*.pkl

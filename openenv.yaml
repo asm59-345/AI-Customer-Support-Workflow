@@ -1,0 +1,72 @@
+name: ai-customer-support-v1
+description: >
+  A reinforcement learning environment for training AI agents to
+  handle real-world customer service tickets across 10 workflow types.
+  Implements the OpenEnv standard API: reset(), step(), state().
+
+version: "1.0.0"
+author: "AI Customer Support Team"
+
+environment:
+  type: docker
+  port: 7860
+
+api:
+  reset:
+    method: POST
+    path: /reset
+    description: Initialize a new episode
+  step:
+    method: POST
+    path: /step
+    description: Execute an agent action
+  state:
+    method: GET
+    path: /state
+    description: Get current episode state
+
+tasks:
+  - id: task_easy
+    name: "Ticket Classification"
+    difficulty: easy
+    max_steps: 3
+    target_score: 0.7
+
+  - id: task_medium
+    name: "Classify & Respond"
+    difficulty: medium
+    max_steps: 5
+    target_score: 0.75
+
+  - id: task_hard
+    name: "Full CX Workflow"
+    difficulty: hard
+    max_steps: 8
+    target_score: 0.8
+
+workflow_types:
+  - inquiry_management
+  - refund_returns
+  - technical_support
+  - billing_payments
+  - account_access
+  - order_fulfillment
+  - complaint_escalation
+  - appointment_scheduling
+  - feedback_survey
+  - proactive_engagement
+
+action_types:
+  - classify
+  - respond
+  - escalate
+  - close
+
+reward_range:
+  min: -0.3
+  max: 0.7
+
+runtime:
+  max_duration_minutes: 20
+  min_cpu: 2
+  min_memory_gb: 8
