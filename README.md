@@ -2,7 +2,7 @@
 title: AI Customer Support Environment
 emoji: 🤖
 colorFrom: indigo
-colorTo: cyan
+colorTo: purple
 sdk: docker
 pinned: false
 license: mit

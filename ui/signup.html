@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - SupportAI</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    :root {
+      --bg: #050814;
+      --surface: rgba(255, 255, 255, 0.03);
+      --border: rgba(255, 255, 255, 0.1);
+      --primary: #6366f1;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .glass-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 400px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      color: white;
+      border: none;
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary), #8b5cf6);
+      transition: 0.2s;
+      font-size: 1rem;
+    }
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    input {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      width: 100%;
+      color: white;
+      outline: none;
+      font-family: 'Inter', sans-serif;
+      margin-bottom: 1.5rem;
+      box-sizing: border-box;
+    }
+    input:focus { border-color: var(--primary); }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--muted);
+    }
+    .text-center { text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="glass-card">
+    <div class="text-center" style="margin-bottom: 2rem">
+      <h2 style="margin:0 0 0.5rem 0; font-size:1.8rem">Create Account</h2>
+      <p style="color:var(--muted); font-size:0.9rem; margin:0">Join the OpenEnv platform</p>
+    </div>
+    
+    <form id="signupForm">
+      <div>
+        <label>Username</label>
+        <input type="text" id="username" placeholder="Choose a username" required />
+      </div>
+      <div>
+        <label>Email Address</label>
+        <input type="email" id="email" placeholder="you@company.com" required />
+      </div>
+      <div>
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Create a password" required />
+      </div>
+      <div id="errorBox" style="color:#ef4444; font-size:0.85rem; margin-bottom:1rem; display:none;"></div>
+      <button type="submit" class="btn">Sign Up</button>
+    </form>
+    
+    <div class="text-center" style="margin-top:2rem; font-size:0.85rem; color:var(--muted)">
+      Already have an account? <a href="/login" style="color:var(--primary); text-decoration:none; font-weight:600">Sign In</a>
+    </div>
+    <div class="text-center" style="margin-top:1rem; font-size:0.85rem">
+      <a href="/" style="color:var(--muted); text-decoration:none;">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const u = document.getElementById('username').value;
+      const em = document.getElementById('email').value;
+      const p = document.getElementById('password').value;
+      const err = document.getElementById('errorBox');
+      
+      try {
+        const res = await fetch('/api/signup', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({username: u, email: em, password: p})
+        });
+        const data = await res.json();
+        
+        if (!res.ok) {
+          err.textContent = data.detail || 'Sign up failed.';
+          err.style.display = 'block';
+        } else {
+          // Success, redirect to login
+          window.location.href = '/login';
+        }
+      } catch (error) {
+        err.textContent = 'Server error occurred.';
+        err.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

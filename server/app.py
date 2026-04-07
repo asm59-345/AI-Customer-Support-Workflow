@@ -36,6 +36,17 @@ from app.models import (
 )
 from app.tasks import list_tasks
 from app.grader import grade_output
+from server.db import create_user, verify_user
+from pydantic import BaseModel
+
+class SignupRequest(BaseModel):
+    username: str
+    email: str
+    password: str
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 
 
 # ---------------------------------------------------------------------------
@@ -97,6 +108,38 @@ async def root():
     if index_path.exists():
         return HTMLResponse(content=index_path.read_text(encoding="utf-8"))
     return HTMLResponse(content="<h1>AI Customer Support OpenEnv</h1><p>UI not found. Visit /docs for API.</p>")
+
+@app.get("/login", response_class=HTMLResponse, tags=["UI"])
+async def serve_login():
+    """Serve the login UI."""
+    login_path = UI_DIR / "login.html"
+    if login_path.exists():
+        return HTMLResponse(content=login_path.read_text(encoding="utf-8"))
+    return HTMLResponse(content="<h1>Login Page Not Found</h1>")
+
+@app.get("/signup", response_class=HTMLResponse, tags=["UI"])
+async def serve_signup():
+    """Serve the signup UI."""
+    signup_path = UI_DIR / "signup.html"
+    if signup_path.exists():
+        return HTMLResponse(content=signup_path.read_text(encoding="utf-8"))
+    return HTMLResponse(content="<h1>Sign Up Page Not Found</h1>")
+
+@app.post("/api/signup", tags=["Auth"])
+async def api_signup(req: SignupRequest):
+    """Register a new user."""
+    success = create_user(req.username, req.email, req.password)
+    if not success:
+        raise HTTPException(status_code=400, detail="Username or email already exists.")
+    return {"status": "success", "message": "User created successfully"}
+
+@app.post("/api/login", tags=["Auth"])
+async def api_login(req: LoginRequest):
+    """Authenticate an existing user."""
+    user = verify_user(req.username, req.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid username or password.")
+    return {"status": "success", "user": {"id": user["id"], "username": user["username"]}}
 
 
 @app.get("/health", response_model=HealthResponse, tags=["System"])

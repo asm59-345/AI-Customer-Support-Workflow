@@ -1,406 +1,1434 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>AI Customer Support — OpenEnv RL Dashboard</title>
-<meta name="description" content="Real-time reinforcement learning dashboard for AI customer support workflow automation across 10 CX workflow types."/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<style>
-:root {
-  --bg: #050814;
-  --surface: rgba(255,255,255,0.04);
-  --surface-hover: rgba(255,255,255,0.08);
-  --border: rgba(255,255,255,0.08);
-  --primary: #6366f1;
-  --primary-glow: rgba(99,102,241,0.35);
-  --accent: #22d3ee;
-  --accent2: #a78bfa;
-  --green: #34d399;
-  --yellow: #fbbf24;
-  --red: #f87171;
-  --text: #f1f5f9;
-  --muted: #64748b;
-  --radius: 16px;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(99,102,241,0.18) 0%,transparent 70%),radial-gradient(ellipse 50% 40% at 90% 80%,rgba(34,211,238,0.10) 0%,transparent 60%);pointer-events:none;z-index:0}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Customer Support — OpenEnv RL Dashboard</title>
+  <meta name="description"
+    content="Real-time reinforcement learning dashboard for AI customer support workflow automation across 10 CX workflow types." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050814;
+      --surface: rgba(255, 255, 255, 0.04);
+      --surface-hover: rgba(255, 255, 255, 0.08);
+      --border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.35);
+      --accent: #22d3ee;
+      --accent2: #a78bfa;
+      --green: #34d399;
+      --yellow: #fbbf24;
+      --red: #f87171;
+      --text: #f1f5f9;
+      --muted: #64748b;
+      --radius: 16px;
+    }
 
-/* ── NAV ── */
-nav{position:sticky;top:0;z-index:100;backdrop-filter:blur(20px);background:rgba(5,8,20,0.8);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:64px}
-.nav-logo{display:flex;align-items:center;gap:12px;font-weight:700;font-size:1.1rem}
-.nav-logo .dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s infinite}
-.nav-pills{display:flex;gap:6px}
-.pill{padding:6px 14px;border-radius:999px;font-size:.8rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:.2s}
-.pill:hover,.pill.active{background:var(--primary);border-color:var(--primary);color:#fff}
-.nav-right{display:flex;align-items:center;gap:12px}
-.badge-live{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--green);font-weight:600}
-.badge-live span{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
 
-/* ── LAYOUT ── */
-main{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:2rem}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1.5rem}
-.grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
-.grid-full{margin-bottom:1.5rem}
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden
+    }
 
-/* ── CARDS ── */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;backdrop-filter:blur(12px);transition:.2s}
-.card:hover{border-color:rgba(99,102,241,0.3);background:var(--surface-hover)}
-.card-title{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.75rem;display:flex;align-items:center;gap:6px}
-.stat-val{font-size:2.2rem;font-weight:800;letter-spacing:-.03em}
-.stat-sub{font-size:.8rem;color:var(--muted);margin-top:2px}
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(99, 102, 241, 0.18) 0%, transparent 70%), radial-gradient(ellipse 50% 40% at 90% 80%, rgba(34, 211, 238, 0.10) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0
+    }
 
-/* ── HERO ── */
-.hero{text-align:center;padding:3rem 0 2rem}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);border-radius:999px;padding:6px 16px;font-size:.8rem;color:var(--accent2);margin-bottom:1.5rem;font-weight:500}
-.hero h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:800;line-height:1.1;letter-spacing:-.04em;margin-bottom:1rem}
-.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero p{color:var(--muted);font-size:1.05rem;max-width:600px;margin:0 auto 2rem}
-.btn-group{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.btn{padding:12px 24px;border-radius:999px;font-size:.9rem;font-weight:600;cursor:pointer;border:none;transition:.2s;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
-.btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent2));color:#fff;box-shadow:0 0 30px var(--primary-glow)}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 50px var(--primary-glow)}
-.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
-.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      background: rgba(5, 8, 20, 0.8);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px
+    }
 
-/* ── WORKFLOW TYPE GRID ── */
-.workflow-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;margin-bottom:1.5rem}
-.wf-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem;cursor:pointer;transition:.2s;text-align:center}
-.wf-card:hover,.wf-card.selected{border-color:var(--primary);background:rgba(99,102,241,0.1)}
-.wf-icon{font-size:1.6rem;margin-bottom:.4rem}
-.wf-name{font-size:.7rem;font-weight:600;color:var(--muted);line-height:1.3}
-.wf-count{font-size:.65rem;color:var(--primary);margin-top:2px;font-weight:500}
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 1.1rem
+    }
 
-/* ── SIMULATOR ── */
-.sim-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
-.task-tabs{display:flex;gap:6px}
-.task-tab{padding:8px 16px;border-radius:999px;font-size:.8rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:.2s}
-.task-tab.easy.active{background:#064e3b;color:var(--green);border-color:var(--green)}
-.task-tab.medium.active{background:#451a03;color:var(--yellow);border-color:var(--yellow)}
-.task-tab.hard.active{background:#450a0a;color:var(--red);border-color:var(--red)}
+    .nav-logo .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+      animation: pulse 2s infinite
+    }
 
-.ticket-box{background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem;font-size:.9rem;line-height:1.6;font-style:italic;color:#cbd5e1;position:relative}
-.ticket-box::before{content:'📋 Ticket';position:absolute;top:-10px;left:16px;font-size:.7rem;font-weight:700;font-style:normal;background:var(--bg);padding:0 8px;color:var(--primary);letter-spacing:.08em}
+    .nav-pills {
+      display: flex;
+      gap: 6px
+    }
 
-.action-row{display:flex;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap}
-.action-btn{flex:1;min-width:120px;padding:10px;border-radius:10px;font-size:.8rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);transition:.2s;display:flex;align-items:center;justify-content:center;gap:6px}
-.action-btn:hover{transform:translateY(-2px)}
-.action-btn.classify:hover{border-color:var(--accent);color:var(--accent);background:rgba(34,211,238,0.08)}
-.action-btn.respond:hover{border-color:var(--green);color:var(--green);background:rgba(52,211,153,0.08)}
-.action-btn.escalate:hover{border-color:var(--yellow);color:var(--yellow);background:rgba(251,191,36,0.08)}
-.action-btn.close-btn:hover{border-color:var(--red);color:var(--red);background:rgba(248,113,113,0.08)}
+    .pill {
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: .8rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      transition: .2s
+    }
 
-.content-input{width:100%;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:.85rem;color:var(--text);font-family:inherit;resize:vertical;min-height:70px;transition:.2s}
-.content-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow)}
-.content-input::placeholder{color:var(--muted)}
+    .pill:hover,
+    .pill.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff
+    }
 
-.run-btn{width:100%;padding:12px;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;border:none;background:linear-gradient(135deg,var(--primary),var(--accent2));color:#fff;margin-top:.75rem;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px}
-.run-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--primary-glow)}
-.run-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
 
-/* ── LOG ── */
-.log-box{background:rgba(0,0,0,0.5);border:1px solid var(--border);border-radius:12px;padding:1rem;height:320px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:.75rem;line-height:1.7}
-.log-box::-webkit-scrollbar{width:4px}
-.log-box::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
-.log-entry{margin-bottom:4px;animation:fadeIn .3s ease}
-.log-start{color:#a78bfa;font-weight:600}
-.log-step{color:#22d3ee}
-.log-end{color:#34d399;font-weight:600}
-.log-error{color:#f87171}
-.log-info{color:#94a3b8}
-.log-reward-pos{color:#34d399}
-.log-reward-neg{color:#f87171}
+    .badge-live {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .75rem;
+      color: var(--green);
+      font-weight: 600
+    }
 
-/* ── REWARD METER ── */
-.reward-meter{margin:.75rem 0}
-.reward-label{display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:6px;color:var(--muted)}
-.reward-bar{height:8px;background:rgba(255,255,255,0.05);border-radius:999px;overflow:hidden}
-.reward-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:999px;transition:width .5s cubic-bezier(.4,0,.2,1);width:0%}
+    .badge-live span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 1.5s infinite
+    }
 
-/* ── SCORE RING ── */
-.score-ring-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem}
-.score-ring{position:relative;width:140px;height:140px}
-.score-ring svg{transform:rotate(-90deg)}
-.score-ring .track{fill:none;stroke:rgba(255,255,255,0.05);stroke-width:10}
-.score-ring .fill{fill:none;stroke:url(#scoreGrad);stroke-width:10;stroke-linecap:round;stroke-dasharray:377;stroke-dashoffset:377;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)}
-.score-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:1.8rem}
-.score-center small{font-size:.65rem;color:var(--muted);font-weight:400}
+    /* ── LAYOUT ── */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem
+    }
 
-/* ── WORKFLOW TABLE ── */
-table{width:100%;border-collapse:collapse}
-th{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:left;padding:.6rem 1rem;border-bottom:1px solid var(--border)}
-td{padding:.75rem 1rem;font-size:.85rem;border-bottom:1px solid rgba(255,255,255,0.03)}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--surface-hover)}
-.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:600}
-.badge-easy{background:#064e3b;color:#34d399}
-.badge-med{background:#451a03;color:#fbbf24}
-.badge-hard{background:#450a0a;color:#f87171}
-.badge-pass{background:rgba(52,211,153,.15);color:#34d399}
-.badge-fail{background:rgba(248,113,113,.15);color:#f87171}
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem
+    }
 
-/* ── ANIMATIONS ── */
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-@keyframes countUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.animate-in{animation:countUp .5s ease both}
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem
+    }
 
-/* ── RESPONSIVE ── */
-@media(max-width:900px){
-  .grid-3{grid-template-columns:1fr 1fr}
-  .grid-2{grid-template-columns:1fr}
-  .workflow-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
-}
-@media(max-width:600px){
-  .grid-3{grid-template-columns:1fr}
-  nav{padding:0 1rem}
-  main{padding:1rem}
-}
-</style>
+    .grid-full {
+      margin-bottom: 1.5rem
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      backdrop-filter: blur(12px);
+      transition: .2s
+    }
+
+    .card:hover {
+      border-color: rgba(99, 102, 241, 0.3);
+      background: var(--surface-hover)
+    }
+
+    .card-title {
+      font-size: .7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+      margin-bottom: .75rem;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .stat-val {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -.03em
+    }
+
+    .stat-sub {
+      font-size: .8rem;
+      color: var(--muted);
+      margin-top: 2px
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 3rem 0 2rem
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-size: .8rem;
+      color: var(--accent2);
+      margin-bottom: 1.5rem;
+      font-weight: 500
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -.04em;
+      margin-bottom: 1rem
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 600px;
+      margin: 0 auto 2rem
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: .2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--accent2));
+      color: #fff;
+      box-shadow: 0 0 30px var(--primary-glow)
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 50px var(--primary-glow)
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border)
+    }
+
+    .btn-outline:hover {
+      border-color: var(--primary);
+      color: var(--primary)
+    }
+
+    /* ── WORKFLOW TYPE GRID ── */
+    .workflow-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: .75rem;
+      margin-bottom: 1.5rem
+    }
+
+    .wf-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: .2s;
+      text-align: center
+    }
+
+    .wf-card:hover,
+    .wf-card.selected {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.1)
+    }
+
+    .wf-icon {
+      font-size: 1.6rem;
+      margin-bottom: .4rem
+    }
+
+    .wf-name {
+      font-size: .7rem;
+      font-weight: 600;
+      color: var(--muted);
+      line-height: 1.3
+    }
+
+    .wf-count {
+      font-size: .65rem;
+      color: var(--primary);
+      margin-top: 2px;
+      font-weight: 500
+    }
+
+    /* ── SIMULATOR ── */
+    .sim-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem
+    }
+
+    .task-tabs {
+      display: flex;
+      gap: 6px
+    }
+
+    .task-tab {
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: .8rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      transition: .2s
+    }
+
+    .task-tab.easy.active {
+      background: #064e3b;
+      color: var(--green);
+      border-color: var(--green)
+    }
+
+    .task-tab.medium.active {
+      background: #451a03;
+      color: var(--yellow);
+      border-color: var(--yellow)
+    }
+
+    .task-tab.hard.active {
+      background: #450a0a;
+      color: var(--red);
+      border-color: var(--red)
+    }
+
+    .ticket-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      font-size: .9rem;
+      line-height: 1.6;
+      font-style: italic;
+      color: #cbd5e1;
+      position: relative
+    }
+
+    .ticket-box::before {
+      content: '📋 Ticket';
+      position: absolute;
+      top: -10px;
+      left: 16px;
+      font-size: .7rem;
+      font-weight: 700;
+      font-style: normal;
+      background: var(--bg);
+      padding: 0 8px;
+      color: var(--primary);
+      letter-spacing: .08em
+    }
+
+    .action-row {
+      display: flex;
+      gap: .75rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap
+    }
+
+    .action-btn {
+      flex: 1;
+      min-width: 120px;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: .8rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      transition: .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px
+    }
+
+    .action-btn:hover {
+      transform: translateY(-2px)
+    }
+
+    .action-btn.classify:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(34, 211, 238, 0.08)
+    }
+
+    .action-btn.respond:hover {
+      border-color: var(--green);
+      color: var(--green);
+      background: rgba(52, 211, 153, 0.08)
+    }
+
+    .action-btn.escalate:hover {
+      border-color: var(--yellow);
+      color: var(--yellow);
+      background: rgba(251, 191, 36, 0.08)
+    }
+
+    .action-btn.close-btn:hover {
+      border-color: var(--red);
+      color: var(--red);
+      background: rgba(248, 113, 113, 0.08)
+    }
+
+    .content-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: .85rem;
+      color: var(--text);
+      font-family: inherit;
+      resize: vertical;
+      min-height: 70px;
+      transition: .2s
+    }
+
+    .content-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow)
+    }
+
+    .content-input::placeholder {
+      color: var(--muted)
+    }
+
+    .run-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: .9rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      background: linear-gradient(135deg, var(--primary), var(--accent2));
+      color: #fff;
+      margin-top: .75rem;
+      transition: .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px
+    }
+
+    .run-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--primary-glow)
+    }
+
+    .run-btn:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+      transform: none
+    }
+
+    /* ── LOG ── */
+    .log-box {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      height: 320px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem;
+      line-height: 1.7
+    }
+
+    .log-box::-webkit-scrollbar {
+      width: 4px
+    }
+
+    .log-box::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px
+    }
+
+    .log-entry {
+      margin-bottom: 4px;
+      animation: fadeIn .3s ease
+    }
+
+    .log-start {
+      color: #a78bfa;
+      font-weight: 600
+    }
+
+    .log-step {
+      color: #22d3ee
+    }
+
+    .log-end {
+      color: #34d399;
+      font-weight: 600
+    }
+
+    .log-error {
+      color: #f87171
+    }
+
+    .log-info {
+      color: #94a3b8
+    }
+
+    .log-reward-pos {
+      color: #34d399
+    }
+
+    .log-reward-neg {
+      color: #f87171
+    }
+
+    /* ── REWARD METER ── */
+    .reward-meter {
+      margin: .75rem 0
+    }
+
+    .reward-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: .8rem;
+      margin-bottom: 6px;
+      color: var(--muted)
+    }
+
+    .reward-bar {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 999px;
+      overflow: hidden
+    }
+
+    .reward-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 999px;
+      transition: width .5s cubic-bezier(.4, 0, .2, 1);
+      width: 0%
+    }
+
+    /* ── SCORE RING ── */
+    .score-ring-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem
+    }
+
+    .score-ring {
+      position: relative;
+      width: 140px;
+      height: 140px;
+    }
+
+    /* ── CHATBOT UI ── */
+    .assistant-section {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 2rem;
+    }
+    .chat-window {
+      display: flex;
+      flex-direction: column;
+      height: 500px;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .message {
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      max-width: 80%;
+      line-height: 1.6;
+      font-size: 0.9rem;
+      animation: fadeIn 0.3s ease;
+    }
+    .message.user {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .message.bot {
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+
+    .score-ring svg {
+      transform: rotate(-90deg)
+    }
+
+    .score-ring .track {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.05);
+      stroke-width: 10
+    }
+
+    .score-ring .fill {
+      fill: none;
+      stroke: url(#scoreGrad);
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 377;
+      stroke-dashoffset: 377;
+      transition: stroke-dashoffset 1s cubic-bezier(.4, 0, .2, 1)
+    }
+
+    .score-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.8rem
+    }
+
+    .score-center small {
+      font-size: .65rem;
+      color: var(--muted);
+      font-weight: 400
+    }
+
+    /* ── WORKFLOW TABLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th {
+      font-size: .7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      text-align: left;
+      padding: .6rem 1rem;
+      border-bottom: 1px solid var(--border)
+    }
+
+    td {
+      padding: .75rem 1rem;
+      font-size: .85rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03)
+    }
+
+    tr:last-child td {
+      border-bottom: none
+    }
+
+    tr:hover td {
+      background: var(--surface-hover)
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: .7rem;
+      font-weight: 600
+    }
+
+    .badge-easy {
+      background: #064e3b;
+      color: #34d399
+    }
+
+    .badge-med {
+      background: #451a03;
+      color: #fbbf24
+    }
+
+    .badge-hard {
+      background: #450a0a;
+      color: #f87171
+    }
+
+    .badge-pass {
+      background: rgba(52, 211, 153, .15);
+      color: #34d399
+    }
+
+    .badge-fail {
+      background: rgba(248, 113, 113, .15);
+      color: #f87171
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .4
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes countUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .animate-in {
+      animation: countUp .5s ease both
+    }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:900px) {
+      .grid-3 {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr
+      }
+
+      .assistant-section {
+        grid-template-columns: 1fr;
+      }
+
+      .workflow-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr))
+      }
+    }
+
+    @media(max-width:600px) {
+      .grid-3 {
+        grid-template-columns: 1fr
+      }
+
+      nav {
+        padding: 0 1rem
+      }
+
+      main {
+        padding: 1rem
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- NAV -->
-<nav>
-  <div class="nav-logo">
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-      <circle cx="14" cy="14" r="14" fill="url(#navGrad)"/>
-      <path d="M9 18l3-6 3 4 2-3 2 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-      <defs><linearGradient id="navGrad" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
-    </svg>
-    <span>CX·OpenEnv</span>
-    <div class="dot"></div>
-  </div>
-  <div class="nav-pills">
-    <button class="pill active" onclick="showSection('simulator')">Simulator</button>
-    <button class="pill" onclick="showSection('workflows')">Workflows</button>
-    <button class="pill" onclick="showSection('analytics')">Analytics</button>
-    <button class="pill" onclick="showSection('api')">API Docs</button>
-  </div>
-  <div class="nav-right">
-    <div class="badge-live"><span></span>Live</div>
-    <a href="/docs" target="_blank" class="btn btn-outline" style="padding:6px 14px;font-size:.8rem">Swagger</a>
-  </div>
-</nav>
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="14" fill="url(#navGrad)" />
+        <path d="M9 18l3-6 3 4 2-3 2 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"
+          stroke-linejoin="round" />
+        <defs>
+          <linearGradient id="navGrad" x1="0" y1="0" x2="28" y2="28">
+            <stop stop-color="#6366f1" />
+            <stop offset="1" stop-color="#22d3ee" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <span>CX·OpenEnv</span>
+      <div class="dot"></div>
+    </div>
+    <div class="nav-pills" style="display:flex; flex-wrap:wrap; justify-content:center; gap:6px">
+      <a href="#hero" class="pill" style="text-decoration:none">Home</a>
+      <a href="#hero" class="pill" style="text-decoration:none">About</a>
+      <a href="#simulator" class="pill" style="text-decoration:none">Activity</a>
+      <a href="#assistant" class="pill" style="text-decoration:none">AI Chatbot</a>
+      <a href="#how-it-works" class="pill" style="text-decoration:none">How it works</a>
+      <a href="#api" class="pill" style="text-decoration:none">Docs</a>
+      <a href="#faq" class="pill" style="text-decoration:none">FAQ</a>
+      <a href="#contact" class="pill" style="text-decoration:none">Contact Us</a>
+    </div>
+    <div class="nav-right" id="authNav">
+      <div class="badge-live"><span></span>Live</div>
+      <a href="/login" class="btn btn-outline" style="padding:6px 14px;font-size:.8rem;text-decoration:none">Login</a>
+      <a href="/signup" class="btn btn-primary" style="padding:6px 14px;font-size:.8rem;text-decoration:none">Sign Up</a>
+    </div>
+  </nav>
 
-<main>
+  <main>
 
-<!-- HERO -->
-<div class="hero" id="hero">
-  <div class="hero-badge">⚡ OpenEnv · RL Environment · v1.0.0</div>
-  <h1>AI Customer Support<br/><span>Workflow Environment</span></h1>
-  <p>A reinforcement learning environment where AI agents learn to handle real-world customer support tickets across 10 CX workflow types.</p>
-  <div class="btn-group">
-    <button class="btn btn-primary" onclick="startDemo()">▶ Run Demo Agent</button>
-    <a href="/docs" target="_blank" class="btn btn-outline">📖 API Reference</a>
-  </div>
-</div>
-
-<!-- STATS ROW -->
-<div class="grid-3">
-  <div class="card animate-in">
-    <div class="card-title">⚡ Workflow Types</div>
-    <div class="stat-val" id="wfCount">10</div>
-    <div class="stat-sub">CX categories supported</div>
-  </div>
-  <div class="card animate-in" style="animation-delay:.1s">
-    <div class="card-title">🎫 Ticket Corpus</div>
-    <div class="stat-val" id="ticketCount">30</div>
-    <div class="stat-sub">Realistic support tickets</div>
-  </div>
-  <div class="card animate-in" style="animation-delay:.2s">
-    <div class="card-title">🏆 Target Score</div>
-    <div class="stat-val">≥ 0.7</div>
-    <div class="stat-sub">Per-episode threshold</div>
-  </div>
-</div>
-
-<!-- WORKFLOW TYPES -->
-<div class="card grid-full" id="workflows-section">
-  <div class="card-title">🗂 CX Workflow Types — Click to filter simulator tickets</div>
-  <div class="workflow-grid" id="workflowGrid"></div>
-</div>
-
-<!-- MAIN SIMULATOR + LOG -->
-<div class="grid-2" id="simulator">
-  <!-- LEFT: Simulator -->
-  <div class="card">
-    <div class="sim-header">
-      <div class="card-title" style="margin:0">🤖 Agent Simulator</div>
-      <div class="task-tabs">
-        <button class="task-tab easy active" id="tab-easy" onclick="selectTask('task_easy',this)">🟢 Easy</button>
-        <button class="task-tab medium" id="tab-medium" onclick="selectTask('task_medium',this)">🟡 Medium</button>
-        <button class="task-tab hard" id="tab-hard" onclick="selectTask('task_hard',this)">🔴 Hard</button>
+    <!-- HERO -->
+    <div class="hero" id="hero">
+      <div class="hero-badge">⚡ OpenEnv · RL Environment · v1.0.0</div>
+      <h1>AI Customer Support<br /><span>Workflow Environment</span></h1>
+      <p>A reinforcement learning environment where AI agents learn to handle real-world customer support tickets across
+        10 CX workflow types.</p>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="startDemo()">▶ Run Demo Agent</button>
+        <a href="/docs" target="_blank" class="btn btn-outline">📖 API Reference</a>
       </div>
     </div>
 
-    <div class="ticket-box" id="ticketBox">Click 🔄 Reset to load a ticket and begin the episode.</div>
-
-    <div class="reward-meter">
-      <div class="reward-label"><span>Cumulative Reward</span><span id="rewardVal">0.000</span></div>
-      <div class="reward-bar"><div class="reward-fill" id="rewardBar"></div></div>
-    </div>
-
-    <div class="action-row">
-      <button class="action-btn classify" onclick="setAction('classify')" id="act-classify">🏷 Classify</button>
-      <button class="action-btn respond" onclick="setAction('respond')" id="act-respond">💬 Respond</button>
-      <button class="action-btn escalate" onclick="setAction('escalate')" id="act-escalate">🚨 Escalate</button>
-      <button class="action-btn close-btn" onclick="setAction('close')" id="act-close">✅ Close</button>
-    </div>
-
-    <textarea class="content-input" id="actionContent" placeholder="Type action content here... (e.g. 'refund' for classify, or a response message)"></textarea>
-
-    <div style="display:flex;gap:.75rem;margin-top:.75rem">
-      <button class="run-btn" style="flex:0 0 auto;width:auto;padding:12px 20px;background:var(--surface);border:1px solid var(--border);color:var(--text)" onclick="resetEpisode()">🔄 Reset</button>
-      <button class="run-btn" id="stepBtn" onclick="executeStep()">⚡ Execute Step</button>
-    </div>
-
-    <div style="margin-top:1rem">
-      <div class="card-title">📊 Episode Status</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem">
-        <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:.6rem;text-align:center">
-          <div style="font-size:.65rem;color:var(--muted)">Steps</div>
-          <div style="font-weight:700" id="stepCount">0</div>
-        </div>
-        <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:.6rem;text-align:center">
-          <div style="font-size:.65rem;color:var(--muted)">Status</div>
-          <div style="font-weight:600;font-size:.8rem" id="statusVal">—</div>
-        </div>
-        <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:.6rem;text-align:center">
-          <div style="font-size:.65rem;color:var(--muted)">Task</div>
-          <div style="font-weight:600;font-size:.8rem" id="taskVal">easy</div>
-        </div>
+    <!-- STATS ROW -->
+    <div class="grid-3">
+      <div class="card animate-in">
+        <div class="card-title">⚡ Workflow Types</div>
+        <div class="stat-val" id="wfCount">10</div>
+        <div class="stat-sub">CX categories supported</div>
+      </div>
+      <div class="card animate-in" style="animation-delay:.1s">
+        <div class="card-title">🎫 Ticket Corpus</div>
+        <div class="stat-val" id="ticketCount">30</div>
+        <div class="stat-sub">Realistic support tickets</div>
+      </div>
+      <div class="card animate-in" style="animation-delay:.2s">
+        <div class="card-title">🏆 Target Score</div>
+        <div class="stat-val">≥ 0.7</div>
+        <div class="stat-sub">Per-episode threshold</div>
       </div>
     </div>
-  </div>
 
-  <!-- RIGHT: Log + Score -->
-  <div style="display:flex;flex-direction:column;gap:1rem">
-    <div class="card" style="flex:1">
-      <div class="card-title">📟 Agent Log</div>
-      <div class="log-box" id="logBox">
-        <div class="log-info"># AI Customer Support OpenEnv v1.0.0</div>
-        <div class="log-info"># Select a task tab, click Reset, then execute steps</div>
-        <div class="log-info"># Workflow types: inquiry · refund · technical · billing</div>
-        <div class="log-info">#                 account · shipping · complaint · appointment</div>
-        <div class="log-info">#                 feedback · engagement</div>
-      </div>
+    <!-- WORKFLOW TYPES -->
+    <div class="card grid-full" id="workflows-section">
+      <div class="card-title">🗂 CX Workflow Types — Click to filter simulator tickets</div>
+      <div class="workflow-grid" id="workflowGrid"></div>
     </div>
-    <div class="card">
-      <div class="card-title">🏆 Episode Score</div>
-      <div class="score-ring-wrap">
-        <div class="score-ring">
-          <svg width="140" height="140" viewBox="0 0 140 140">
-            <defs>
-              <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#6366f1"/>
-                <stop offset="100%" stop-color="#22d3ee"/>
-              </linearGradient>
-            </defs>
-            <circle class="track" cx="70" cy="70" r="60"/>
-            <circle class="fill" id="scoreFill" cx="70" cy="70" r="60"/>
-          </svg>
-          <div class="score-center">
-            <span id="scoreText">0.000</span>
-            <small>/ 1.000</small>
+
+    <!-- MAIN SIMULATOR + LOG -->
+    <div class="grid-2" id="simulator">
+      <!-- LEFT: Simulator -->
+      <div class="card">
+        <div class="sim-header">
+          <div class="card-title" style="margin:0">🤖 Agent Simulator</div>
+          <div class="task-tabs">
+            <button class="task-tab easy active" id="tab-easy" onclick="selectTask('task_easy',this)">🟢 Easy</button>
+            <button class="task-tab medium" id="tab-medium" onclick="selectTask('task_medium',this)">🟡 Medium</button>
+            <button class="task-tab hard" id="tab-hard" onclick="selectTask('task_hard',this)">🔴 Hard</button>
           </div>
         </div>
-        <div style="margin-top:1rem;text-align:center">
-          <div id="scoreStatus" style="font-size:.85rem;color:var(--muted)">Run an episode to see results</div>
+
+        <div class="ticket-box" id="ticketBox">Click 🔄 Reset to load a ticket and begin the episode.</div>
+
+        <div class="reward-meter">
+          <div class="reward-label"><span>Cumulative Reward</span><span id="rewardVal">0.000</span></div>
+          <div class="reward-bar">
+            <div class="reward-fill" id="rewardBar"></div>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button class="action-btn classify" onclick="setAction('classify')" id="act-classify">🏷 Classify</button>
+          <button class="action-btn respond" onclick="setAction('respond')" id="act-respond">💬 Respond</button>
+          <button class="action-btn escalate" onclick="setAction('escalate')" id="act-escalate">🚨 Escalate</button>
+          <button class="action-btn close-btn" onclick="setAction('close')" id="act-close">✅ Close</button>
+        </div>
+
+        <textarea class="content-input" id="actionContent"
+          placeholder="Type action content here... (e.g. 'refund' for classify, or a response message)"></textarea>
+
+        <div style="display:flex;gap:.75rem;margin-top:.75rem">
+          <button class="run-btn"
+            style="flex:0 0 auto;width:auto;padding:12px 20px;background:var(--surface);border:1px solid var(--border);color:var(--text)"
+            onclick="resetEpisode()">🔄 Reset</button>
+          <button class="run-btn" id="stepBtn" onclick="executeStep()">⚡ Execute Step</button>
+        </div>
+
+        <div style="margin-top:1rem">
+          <div class="card-title">📊 Episode Status</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem">
+            <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:.6rem;text-align:center">
+              <div style="font-size:.65rem;color:var(--muted)">Steps</div>
+              <div style="font-weight:700" id="stepCount">0</div>
+            </div>
+            <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:.6rem;text-align:center">
+              <div style="font-size:.65rem;color:var(--muted)">Status</div>
+              <div style="font-weight:600;font-size:.8rem" id="statusVal">—</div>
+            </div>
+            <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:.6rem;text-align:center">
+              <div style="font-size:.65rem;color:var(--muted)">Task</div>
+              <div style="font-weight:600;font-size:.8rem" id="taskVal">easy</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Log + Score -->
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="card" style="flex:1">
+          <div class="card-title">📟 Agent Log</div>
+          <div class="log-box" id="logBox">
+            <div class="log-info"># AI Customer Support OpenEnv v1.0.0</div>
+            <div class="log-info"># Select a task tab, click Reset, then execute steps</div>
+            <div class="log-info"># Workflow types: inquiry · refund · technical · billing</div>
+            <div class="log-info"># account · shipping · complaint · appointment</div>
+            <div class="log-info"># feedback · engagement</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🏆 Episode Score</div>
+          <div class="score-ring-wrap">
+            <div class="score-ring">
+              <svg width="140" height="140" viewBox="0 0 140 140">
+                <defs>
+                  <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#6366f1" />
+                    <stop offset="100%" stop-color="#22d3ee" />
+                  </linearGradient>
+                </defs>
+                <circle class="track" cx="70" cy="70" r="60" />
+                <circle class="fill" id="scoreFill" cx="70" cy="70" r="60" />
+              </svg>
+              <div class="score-center">
+                <span id="scoreText">0.000</span>
+                <small>/ 1.000</small>
+              </div>
+            </div>
+            <div style="margin-top:1rem;text-align:center">
+              <div id="scoreStatus" style="font-size:.85rem;color:var(--muted)">Run an episode to see results</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- WORKFLOW TABLE -->
-<div class="card grid-full" id="workflows">
-  <div class="card-title">📋 CX Workflow Reference — 10 Supported Types</div>
-  <table>
-    <thead>
-      <tr>
-        <th>Icon</th><th>Workflow Type</th><th>Category Key</th><th>Tickets</th><th>Escalates?</th><th>Example Ticket</th>
-      </tr>
-    </thead>
-    <tbody id="workflowTable"></tbody>
-  </table>
-</div>
-
-<!-- API QUICK REFERENCE -->
-<div class="card grid-full" id="api">
-  <div class="card-title">🔌 API Quick Reference</div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">
-    <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:1rem">
-      <div style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:600;margin-bottom:.5rem">POST /reset</div>
-      <div style="font-size:.8rem;color:var(--muted)">Initialize new episode. Returns first observation with ticket text.</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;background:rgba(0,0,0,0.4);border-radius:8px;padding:.6rem;margin-top:.5rem;color:#94a3b8">{"task_id": "task_easy"}</div>
+    <!-- WORKFLOW TABLE -->
+    <div class="card grid-full" id="workflows">
+      <div class="card-title">📋 CX Workflow Reference — 10 Supported Types</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Icon</th>
+            <th>Workflow Type</th>
+            <th>Category Key</th>
+            <th>Tickets</th>
+            <th>Escalates?</th>
+            <th>Example Ticket</th>
+          </tr>
+        </thead>
+        <tbody id="workflowTable"></tbody>
+      </table>
     </div>
-    <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:1rem">
-      <div style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:600;margin-bottom:.5rem">POST /step</div>
-      <div style="font-size:.8rem;color:var(--muted)">Execute agent action. Returns observation, reward, done flag.</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;background:rgba(0,0,0,0.4);border-radius:8px;padding:.6rem;margin-top:.5rem;color:#94a3b8">{"action_type":"classify","content":"refund"}</div>
+
+    <!-- API QUICK REFERENCE -->
+    <div class="card grid-full" id="api">
+      <div class="card-title">🔌 API Quick Reference</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">
+        <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:1rem">
+          <div
+            style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:600;margin-bottom:.5rem">
+            POST /reset</div>
+          <div style="font-size:.8rem;color:var(--muted)">Initialize new episode. Returns first observation with ticket
+            text.</div>
+          <div
+            style="font-family:'JetBrains Mono',monospace;font-size:.72rem;background:rgba(0,0,0,0.4);border-radius:8px;padding:.6rem;margin-top:.5rem;color:#94a3b8">
+            {"task_id": "task_easy"}</div>
+        </div>
+        <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:1rem">
+          <div
+            style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:600;margin-bottom:.5rem">
+            POST /step</div>
+          <div style="font-size:.8rem;color:var(--muted)">Execute agent action. Returns observation, reward, done flag.
+          </div>
+          <div
+            style="font-family:'JetBrains Mono',monospace;font-size:.72rem;background:rgba(0,0,0,0.4);border-radius:8px;padding:.6rem;margin-top:.5rem;color:#94a3b8">
+            {"action_type":"classify","content":"refund"}</div>
+        </div>
+        <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:1rem">
+          <div
+            style="color:var(--accent2);font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:600;margin-bottom:.5rem">
+            GET /state</div>
+          <div style="font-size:.8rem;color:var(--muted)">Get full episode state snapshot including history and rewards.
+          </div>
+          <div
+            style="font-family:'JetBrains Mono',monospace;font-size:.72rem;background:rgba(0,0,0,0.4);border-radius:8px;padding:.6rem;margin-top:.5rem;color:#94a3b8">
+            → episode_id, step_count, status</div>
+        </div>
+        <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:1rem">
+          <div
+            style="color:var(--yellow);font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:600;margin-bottom:.5rem">
+            POST /grade</div>
+          <div style="font-size:.8rem;color:var(--muted)">Deterministic grade of full agent output text. Returns 0.0–1.0
+            score.</div>
+          <div
+            style="font-family:'JetBrains Mono',monospace;font-size:.72rem;background:rgba(0,0,0,0.4);border-radius:8px;padding:.6rem;margin-top:.5rem;color:#94a3b8">
+            {"output":"...","task_id":"task_hard"}</div>
+        </div>
+      </div>
     </div>
-    <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:1rem">
-      <div style="color:var(--accent2);font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:600;margin-bottom:.5rem">GET /state</div>
-      <div style="font-size:.8rem;color:var(--muted)">Get full episode state snapshot including history and rewards.</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;background:rgba(0,0,0,0.4);border-radius:8px;padding:.6rem;margin-top:.5rem;color:#94a3b8">→ episode_id, step_count, status</div>
+
+    <!-- AI ASSISTANT SECTION -->
+    <section id="assistant" style="padding: 100px 0;">
+      <div class="sub-title">Agent Interface</div>
+      <h2 class="section-title">Memory-Based AI Chatbot</h2>
+      <p style="color:var(--muted); max-width:600px; margin-bottom:3rem">
+        Our conversational agents maintain context across multiple interactions, adapting tone and remembering user details for an exceptional support experience.
+      </p>
+      
+      <div class="assistant-section">
+        <!-- Memory Panel -->
+        <div class="glass-card" style="padding: 1.5rem">
+          <div style="font-weight:700; margin-bottom:1rem; display:flex; align-items:center; gap:8px">
+            🧠 Active Memory Context
+          </div>
+          <div style="font-size:0.8rem; color:var(--muted); border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:10px">
+            <strong>User ID:</strong> u_7894a<br/>
+            <strong>Sentiment:</strong> Frustrated (-0.4)<br/>
+            <strong>Lifetime Value:</strong> $4,200
+          </div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-bottom:20px">
+            <strong>Recent Events:</strong>
+            <ul style="padding-left:16px; margin-top:4px">
+              <li>Failed login (2 hrs ago)</li>
+              <li>Subscription renewed (3 days ago)</li>
+            </ul>
+          </div>
+          
+          <div style="font-weight:600; font-size:0.85rem; margin-bottom:10px">Agent Directives:</div>
+          <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:8px; padding:10px; font-size:0.75rem; color:var(--green)">
+            ✓ Prioritize de-escalation<br/>
+            ✓ Offer complimentary extended trial<br/>
+            ✓ Do NOT redirect to self-help
+          </div>
+        </div>
+
+        <!-- Chat Window -->
+        <div class="glass-card chat-window">
+          <div style="padding:1rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px">
+            <div style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--accent)); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.2rem">S</div>
+            <div>
+              <div style="font-weight:600">SupportAI Agent</div>
+              <div style="font-size:0.7rem; color:var(--green)">● Online</div>
+            </div>
+          </div>
+          
+          <div class="chat-messages">
+            <div class="message user">
+              I'm really upset. I was charged twice for my Pro subscription this month and I can't even log in right now!
+            </div>
+            
+            <div class="message bot">
+              <div style="font-size:0.7rem; color:var(--primary); margin-bottom:4px; font-weight:600">Observation: [billing_dispute + technical_issue] Detected</div>
+              I sincerely apologize for the frustration this has caused you. I can see the duplicate charge on our end, and I'm processing a full refund for the extra charge immediately. 
+              <br/><br/>
+              Since you're also having trouble logging in, I'm resetting your session tokens now. Could you please try logging in again in just a moment?
+            </div>
+            
+            <div class="message user">
+              Okay, I just logged in. It works now.
+            </div>
+            
+            <div class="message bot">
+              <div style="font-size:0.7rem; color:var(--green); margin-bottom:4px; font-weight:600">Action: [proactive_engagement]</div>
+              Excellent, I'm glad to hear that! The refund should appear on your statement in 3-5 business days. 
+              <br/><br/>
+              To make up for the hassle, I've gone ahead and added a free month of Pro to your account. Is there anything else I can help you with today?
+            </div>
+          </div>
+          
+          <div style="padding:1rem; border-top:1px solid var(--border); display:flex; gap:10px">
+            <input type="text" id="chatInput" placeholder="Type a message..." style="flex:1; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:999px; padding:0 20px; color:white; outline:none; font-family:'Inter', sans-serif" onkeydown="if(event.key==='Enter') sendChat()"/>
+            <button class="btn btn-primary" style="padding: 10px 20px" onclick="sendChat()">Send</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS TIMELINE -->
+    <section id="how-it-works" style="padding: 100px 0;">
+      <div style="text-align:center; margin-bottom:4rem">
+        <div class="sub-title">Architecture</div>
+        <h2 class="section-title">How SupportAI Works</h2>
+      </div>
+      
+      <div style="position:relative; max-width:800px; margin:0 auto">
+        <!-- Connecting Line -->
+        <div style="position:absolute; left:24px; top:24px; bottom:24px; width:2px; background:var(--border)"></div>
+        
+        <!-- Step 1 -->
+        <div style="display:flex; gap:2rem; margin-bottom:3rem; position:relative">
+          <div style="width:50px; height:50px; border-radius:50%; background:var(--bg); border:2px solid var(--primary); display:flex; align-items:center; justify-content:center; font-weight:bold; z-index:1; font-size:1.2rem; flex-shrink:0">1</div>
+          <div>
+            <h3 style="font-size:1.3rem; margin-bottom:0.5rem">Ticket Intake & Context Gathering</h3>
+            <p style="color:var(--muted)">The environment passes an incoming customer request to the agent, providing full historical context, user sentiment, and relevant account details.</p>
+          </div>
+        </div>
+        
+        <!-- Step 2 -->
+        <div style="display:flex; gap:2rem; margin-bottom:3rem; position:relative">
+          <div style="width:50px; height:50px; border-radius:50%; background:var(--bg); border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; font-weight:bold; z-index:1; font-size:1.2rem; flex-shrink:0">2</div>
+          <div>
+            <h3 style="font-size:1.3rem; margin-bottom:0.5rem">Classification Action</h3>
+            <p style="color:var(--muted)">The agent uses the <code>classify</code> action to assign the ticket to one of the 10 distinct workflow types. It receives a reward based on classification accuracy.</p>
+          </div>
+        </div>
+        
+        <!-- Step 3 -->
+        <div style="display:flex; gap:2rem; margin-bottom:3rem; position:relative">
+          <div style="width:50px; height:50px; border-radius:50%; background:var(--bg); border:2px solid var(--purple); display:flex; align-items:center; justify-content:center; font-weight:bold; z-index:1; font-size:1.2rem; flex-shrink:0">3</div>
+          <div>
+            <h3 style="font-size:1.3rem; margin-bottom:0.5rem">Resolution & Empathy</h3>
+            <p style="color:var(--muted)">The agent outputs a response. Our deterministic grader analyzes the text for specific resolution signals and empathy markers to assign a quality score.</p>
+          </div>
+        </div>
+        
+        <!-- Step 4 -->
+        <div style="display:flex; gap:2rem; position:relative">
+          <div style="width:50px; height:50px; border-radius:50%; background:var(--bg); border:2px solid var(--green); display:flex; align-items:center; justify-content:center; font-weight:bold; z-index:1; font-size:1.2rem; flex-shrink:0">4</div>
+          <div>
+            <h3 style="font-size:1.3rem; margin-bottom:0.5rem">Escalation or Closure</h3>
+            <p style="color:var(--muted)">Depending on the workflow rules, the agent must either correctly <code>escalate</code> complex issues, or <code>close</code> the ticket upon successful resolution, completing the episode.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIVE ANALYTICS (Chart.js) -->
+    <section id="analytics" style="padding: 100px 0;">
+      <div class="sub-title">Performance Metrics</div>
+      <h2 class="section-title">Live Analytics Dashboard</h2>
+      <p style="color:var(--muted); margin-bottom:3rem">Tracking model convergence and reward distribution across millions of training steps.</p>
+      
+      <div class="analytics-grid">
+        <div class="glass-card" style="padding: 1.5rem">
+          <h4 style="margin-bottom: 1rem">Average Episode Reward Trend</h4>
+          <div class="chart-container">
+            <canvas id="rewardChart"></canvas>
+          </div>
+        </div>
+        
+        <div class="glass-card" style="padding: 1.5rem">
+          <h4 style="margin-bottom: 1rem">Workflow Distribution</h4>
+          <div class="chart-container">
+            <canvas id="distChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" style="padding: 100px 0;">
+      <div style="text-align:center; margin-bottom:4rem">
+        <div class="sub-title">Knowledge Base</div>
+        <h2 class="section-title">Frequently Asked Questions</h2>
+      </div>
+      
+      <div style="max-width:800px; margin:0 auto; display:flex; flex-direction:column; gap:1rem">
+        <div class="glass-card" style="padding:1.5rem">
+          <h4 style="font-size:1.1rem; margin-bottom:0.5rem">How is the reward calculated?</h4>
+          <p style="color:var(--muted); font-size:0.9rem">The environment gives intermediate rewards for correct classification (+0.7), and terminal rewards based on text quality, empathy, and correct termination logic (escalate vs close).</p>
+        </div>
+        <div class="glass-card" style="padding:1.5rem">
+          <h4 style="font-size:1.1rem; margin-bottom:0.5rem">Can I use my own models with this environment?</h4>
+          <p style="color:var(--muted); font-size:0.9rem">Yes! The environment is strictly API-driven following standard Gym/PettingZoo paradigms. Any local language model or remote API can interact via the /step endpoint.</p>
+        </div>
+        <div class="glass-card" style="padding:1.5rem">
+          <h4 style="font-size:1.1rem; margin-bottom:0.5rem">Is there a multi-agent mode?</h4>
+          <p style="color:var(--muted); font-size:0.9rem">We are currently developing a v2 release which supports primary agents delegating to specialized sub-agents alongside a supervisor model.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUPPORT & FEEDBACK -->
+    <section id="contact" style="padding: 100px 0;">
+      <div style="text-align:center; margin-bottom:4rem">
+        <div class="sub-title">Contact Us</div>
+        <h2 class="section-title">Support & Feedback</h2>
+        <p style="color:var(--muted); max-width:600px; margin:0 auto">Have a question or want to report an issue? Drop us a message below and our team will get back to you shortly.</p>
+      </div>
+
+      <div class="glass-card" style="max-width:600px; margin:0 auto; padding:2.5rem">
+        <form onsubmit="event.preventDefault(); alert('Feedback submitted successfully!'); this.reset();">
+          <div style="margin-bottom:1.5rem">
+            <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:0.5rem; color:var(--muted)">Name</label>
+            <input type="text" placeholder="John Doe" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:6px; padding:12px; width:100%; color:white; outline:none; font-family:'Inter', sans-serif" required />
+          </div>
+          <div style="margin-bottom:1.5rem">
+            <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:0.5rem; color:var(--muted)">Email Address</label>
+            <input type="email" placeholder="john@company.com" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:6px; padding:12px; width:100%; color:white; outline:none; font-family:'Inter', sans-serif" required />
+          </div>
+          <div style="margin-bottom:1.5rem">
+            <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:0.5rem; color:var(--muted)">Message</label>
+            <textarea placeholder="How can we help?" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:6px; padding:12px; width:100%; color:white; outline:none; min-height:120px; font-family:'Inter', sans-serif; resize:vertical" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%; padding:14px; font-size:1rem; justify-content:center">Send Message</button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <footer style="margin-top:2rem; border-top:1px solid var(--border); padding:4rem 2rem 2rem; background:rgba(0,0,0,0.2)">
+    <div class="footer-grid">
+      <div>
+        <div class="nav-logo" style="margin-bottom:1.5rem">
+          <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="14" fill="url(#footGrad)" />
+            <path d="M9 18l3-6 3 4 2-3 2 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            <defs>
+              <linearGradient id="footGrad" x1="0" y1="0" x2="28" y2="28">
+                <stop stop-color="#6366f1" />
+                <stop offset="1" stop-color="#22d3ee" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <span style="font-size:1rem">SupportAI</span>
+        </div>
+        <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1.5rem">
+          Empowering the next generation of AI customer support through standardized evaluation environments.
+        </p>
+        <p style="font-size:0.9rem; font-weight:600">
+          <span style="color:var(--primary)">📞 Toll-free:</span> 1-800-OPEN-ENV<br/>
+          <span style="color:var(--primary)">✉️ Email:</span> hello@supportai.io
+        </p>
+      </div>
+      
+
+      <div>
+        <h4 style="margin-bottom:1rem">Connect</h4>
+        <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1rem">Follow us on social media for the latest updates.</p>
+        <div style="display:flex; gap:1rem">
+          <a href="#" style="width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; color:white; text-decoration:none; transition:0.2s" onmouseover="this.style.background='var(--primary)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">𝕏</a>
+          <a href="#" style="width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; color:white; text-decoration:none; transition:0.2s" onmouseover="this.style.background='var(--primary)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">in</a>
+          <a href="#" style="width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; color:white; text-decoration:none; transition:0.2s" onmouseover="this.style.background='var(--primary)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">gh</a>
+        </div>
+      </div>
     </div>
-    <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:1rem">
-      <div style="color:var(--yellow);font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:600;margin-bottom:.5rem">POST /grade</div>
-      <div style="font-size:.8rem;color:var(--muted)">Deterministic grade of full agent output text. Returns 0.0–1.0 score.</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;background:rgba(0,0,0,0.4);border-radius:8px;padding:.6rem;margin-top:.5rem;color:#94a3b8">{"output":"...","task_id":"task_hard"}</div>
+    
+    <div class="footer-bottom">
+      &copy; 2026 SupportAI (OpenEnv RL Hackathon). All rights reserved.
     </div>
-  </div>
-</div>
+  </footer>
 
-</main>
 
-<script>
-// ── State ──────────────────────────────────────────────────────────────────
-const API = '';  // same origin
-let currentTask = 'task_easy';
-let currentAction = 'classify';
-let episodeActive = false;
-let cumulativeReward = 0;
-let stepCount = 0;
+  <script>
+    // ── State ──────────────────────────────────────────────────────────────────
+    const API = '';  // same origin
+    let currentTask = 'task_easy';
+    let currentAction = 'classify';
+    let episodeActive = false;
+    let cumulativeReward = 0;
+    let stepCount = 0;
 
-// ── Workflow Data ──────────────────────────────────────────────────────────
-const WORKFLOWS = [
-  {icon:'📋',name:'Inquiry Management',key:'inquiry',tickets:3,escalates:false,example:'Do you offer student discounts?'},
-  {icon:'💰',name:'Refund & Returns',key:'refund',tickets:3,escalates:false,example:'I ordered 2 weeks ago — want a full refund!'},
-  {icon:'🔧',name:'Technical Support',key:'technical_issue',tickets:3,escalates:true,example:'App crashes every time I open it.'},
-  {icon:'🧾',name:'Billing & Payments',key:'billing',tickets:3,escalates:true,example:'Charged twice for my subscription!'},
-  {icon:'🔐',name:'Account & Access',key:'account',tickets:3,escalates:true,example:'I think my account has been hacked.'},
-  {icon:'📦',name:'Order & Fulfillment',key:'shipping',tickets:3,escalates:true,example:'Package shows delivered but I never got it.'},
-  {icon:'🚨',name:'Complaint & Escalation',key:'complaint',tickets:3,escalates:true,example:'Product broke within a week — unacceptable!'},
-  {icon:'📅',name:'Appointment Scheduling',key:'appointment',tickets:2,escalates:false,example:'Schedule a product demo this week.'},
-  {icon:'⭐',name:'Feedback & Survey',key:'feedback',tickets:2,escalates:false,example:'Your agent Sarah was amazing!'},
-  {icon:'🎯',name:'Proactive Engagement',key:'proactive_engagement',tickets:2,escalates:false,example:'My contract is up — what renewal deal can you offer?'},
-];
+    // ── Workflow Data ──────────────────────────────────────────────────────────
+    const WORKFLOWS = [
+      { icon: '📋', name: 'Inquiry Management', key: 'inquiry', tickets: 3, escalates: false, example: 'Do you offer student discounts?' },
+      { icon: '💰', name: 'Refund & Returns', key: 'refund', tickets: 3, escalates: false, example: 'I ordered 2 weeks ago — want a full refund!' },
+      { icon: '🔧', name: 'Technical Support', key: 'technical_issue', tickets: 3, escalates: true, example: 'App crashes every time I open it.' },
+      { icon: '🧾', name: 'Billing & Payments', key: 'billing', tickets: 3, escalates: true, example: 'Charged twice for my subscription!' },
+      { icon: '🔐', name: 'Account & Access', key: 'account', tickets: 3, escalates: true, example: 'I think my account has been hacked.' },
+      { icon: '📦', name: 'Order & Fulfillment', key: 'shipping', tickets: 3, escalates: true, example: 'Package shows delivered but I never got it.' },
+      { icon: '🚨', name: 'Complaint & Escalation', key: 'complaint', tickets: 3, escalates: true, example: 'Product broke within a week — unacceptable!' },
+      { icon: '📅', name: 'Appointment Scheduling', key: 'appointment', tickets: 2, escalates: false, example: 'Schedule a product demo this week.' },
+      { icon: '⭐', name: 'Feedback & Survey', key: 'feedback', tickets: 2, escalates: false, example: 'Your agent Sarah was amazing!' },
+      { icon: '🎯', name: 'Proactive Engagement', key: 'proactive_engagement', tickets: 2, escalates: false, example: 'My contract is up — what renewal deal can you offer?' },
+    ];
 
-// ── Init ───────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  buildWorkflowGrid();
-  buildWorkflowTable();
-  checkHealth();
-});
+    // ── Init ───────────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      buildWorkflowGrid();
+      buildWorkflowTable();
+      checkHealth();
+      initAuth();
+      initCharts();
+    });
 
-function buildWorkflowGrid() {
-  const grid = document.getElementById('workflowGrid');
-  grid.innerHTML = WORKFLOWS.map(w => `
+    function initAuth() {
+      const userStr = localStorage.getItem('user');
+      const authNav = document.getElementById('authNav');
+      if (userStr && authNav) {
+        try {
+          const user = JSON.parse(userStr);
+          authNav.innerHTML = `
+            <div class="badge-live"><span></span>Live</div>
+            <div style="font-size:0.8rem; margin-right:10px; color:var(--muted)">Welcome, <strong style="color:white">${user.username}</strong></div>
+            <button onclick="logout()" class="btn btn-outline" style="padding:6px 14px;font-size:.8rem;">Logout</button>
+          `;
+        } catch(e) {}
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('user');
+      window.location.reload();
+    }
+
+    function sendChat() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if(!text) return;
+      
+      const msgs = document.querySelector('.chat-messages');
+      
+      const userMsg = document.createElement('div');
+      userMsg.className = 'message user';
+      userMsg.textContent = text;
+      msgs.appendChild(userMsg);
+      input.value = '';
+      
+      msgs.scrollTop = msgs.scrollHeight;
+      
+      setTimeout(() => {
+        const botMsg = document.createElement('div');
+        botMsg.className = 'message bot';
+        botMsg.innerHTML = '<div style="font-size:0.7rem; color:var(--primary); margin-bottom:4px; font-weight:600">Action: [processing]</div>I understand. Let me check that for you right now.';
+        msgs.appendChild(botMsg);
+        msgs.scrollTop = msgs.scrollHeight;
+      }, 700);
+    }
+
+    function initCharts() {
+      const ctx1 = document.getElementById('rewardChart')?.getContext('2d');
+      if (ctx1) {
+        new Chart(ctx1, {
+          type: 'line',
+          data: {
+            labels: ['Epoch 1', 'Epoch 5', 'Epoch 10', 'Epoch 20', 'Epoch 30', 'Epoch 50'],
+            datasets: [{
+              label: 'Avg Episode Reward',
+              data: [0.2, 0.35, 0.55, 0.72, 0.82, 0.88],
+              borderColor: '#6366f1',
+              backgroundColor: 'rgba(99,102,241,0.1)',
+              tension: 0.4,
+              fill: true
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 1.0, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { color: 'rgba(255,255,255,0.05)' } } } }
+        });
+      }
+
+      const ctx2 = document.getElementById('distChart')?.getContext('2d');
+      if (ctx2) {
+        new Chart(ctx2, {
+          type: 'doughnut',
+          data: {
+            labels: ['Technical', 'Billing', 'Refunds', 'Inquiry', 'Other'],
+            datasets: [{
+              data: [35, 25, 20, 15, 5],
+              backgroundColor: ['#6366f1', '#22d3ee', '#10b981', '#f59e0b', '#a855f7'],
+              borderWidth: 0
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: {family: 'Inter'} } } }, cutout: '75%' }
+        });
+      }
+    }
+
+    function buildWorkflowGrid() {
+      const grid = document.getElementById('workflowGrid');
+      grid.innerHTML = WORKFLOWS.map(w => `
     <div class="wf-card" onclick="filterByWorkflow('${w.key}')" data-wf="${w.key}">
       <div class="wf-icon">${w.icon}</div>
       <div class="wf-name">${w.name}</div>
       <div class="wf-count">${w.tickets} tickets</div>
     </div>
   `).join('');
-}
+    }
 
-function buildWorkflowTable() {
-  const tbody = document.getElementById('workflowTable');
-  tbody.innerHTML = WORKFLOWS.map(w => `
+    function buildWorkflowTable() {
+      const tbody = document.getElementById('workflowTable');
+      tbody.innerHTML = WORKFLOWS.map(w => `
     <tr>
       <td style="font-size:1.3rem">${w.icon}</td>
       <td style="font-weight:600">${w.name}</td>
@@ -410,203 +1438,204 @@ function buildWorkflowTable() {
       <td style="color:var(--muted);font-size:.8rem;font-style:italic">"${w.example}"</td>
     </tr>
   `).join('');
-}
-
-function filterByWorkflow(key) {
-  document.querySelectorAll('.wf-card').forEach(c => c.classList.remove('selected'));
-  document.querySelector(`[data-wf="${key}"]`)?.classList.add('selected');
-  log(`info`, `# Filter: showing ${key} workflow tickets`);
-}
-
-// ── Task Selection ─────────────────────────────────────────────────────────
-function selectTask(taskId, btn) {
-  currentTask = taskId;
-  document.querySelectorAll('.task-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('taskVal').textContent = taskId.replace('task_','');
-  log('info', `# Task selected: ${taskId}`);
-}
-
-// ── Action Selection ───────────────────────────────────────────────────────
-function setAction(type) {
-  currentAction = type;
-  document.querySelectorAll('.action-btn').forEach(b => b.style.opacity = '0.6');
-  document.getElementById(`act-${type === 'close' ? 'close-btn' : type}`) ||
-  document.querySelector(`.action-btn.${type === 'close' ? 'close-btn' : type}`);
-  
-  const placeholders = {
-    classify: 'Enter category: inquiry | refund | technical_issue | billing | account | shipping | complaint | appointment | feedback | proactive_engagement',
-    respond: 'Write an empathetic, resolution-focused response to the customer...',
-    escalate: 'Reason for escalation (e.g. "angry customer, billing dispute over $200")...',
-    close: 'Closing message (e.g. "Ticket resolved — refund initiated. Is there anything else?")',
-  };
-  document.getElementById('actionContent').placeholder = placeholders[type] || '';
-  document.querySelectorAll('.action-btn').forEach(b => b.style.opacity = '1');
-  
-  // Highlight selected
-  document.querySelectorAll('.action-btn').forEach(b => b.style.boxShadow = '');
-  const sel = document.querySelector(`.action-btn.${type === 'close' ? 'close-btn' : type}`);
-  if (sel) sel.style.boxShadow = '0 0 0 2px var(--primary)';
-}
-
-// ── API Calls ──────────────────────────────────────────────────────────────
-async function resetEpisode() {
-  try {
-    const res = await fetch(`${API}/reset`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({task_id: currentTask})
-    });
-    const data = await res.json();
-    
-    episodeActive = true;
-    cumulativeReward = 0;
-    stepCount = 0;
-    
-    document.getElementById('ticketBox').textContent = data.ticket || 'No ticket loaded';
-    document.getElementById('statusVal').textContent = data.status || 'open';
-    document.getElementById('stepCount').textContent = '0';
-    document.getElementById('rewardVal').textContent = '0.000';
-    document.getElementById('rewardBar').style.width = '0%';
-    updateScore(0);
-    
-    log('start', `[START] task=${currentTask} env=ai-customer-support-v1`);
-    log('info', `# Ticket: "${(data.ticket||'').slice(0,80)}..."`);
-    log('info', `# Hint: ${data.hint || 'Complete the task workflow'}`);
-    if (data.hint) log('info', `# Allowed actions for this task: ${getAllowedActions()}`);
-    
-  } catch(e) {
-    log('error', `[ERROR] Could not connect to server: ${e.message}`);
-    log('error', `# Make sure server is running on port 7860`);
-    // Demo mode — show sample ticket
-    document.getElementById('ticketBox').textContent = 
-      '⚡ Demo Mode: "I was charged twice this month for my subscription. Please fix this billing error immediately!"';
-  }
-}
-
-async function executeStep() {
-  const content = document.getElementById('actionContent').value.trim();
-  if (!content) { log('error', '# Error: Enter action content first'); return; }
-  
-  try {
-    const res = await fetch(`${API}/step`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({action_type: currentAction, content, confidence: 0.9})
-    });
-    const data = await res.json();
-    
-    stepCount++;
-    cumulativeReward = data.cumulative_reward || 0;
-    
-    document.getElementById('stepCount').textContent = stepCount;
-    document.getElementById('statusVal').textContent = data.observation?.status || '—';
-    document.getElementById('rewardVal').textContent = cumulativeReward.toFixed(3);
-    
-    const pct = Math.min(Math.max((cumulativeReward / 1.0) * 100, 0), 100);
-    document.getElementById('rewardBar').style.width = pct + '%';
-    updateScore(cumulativeReward);
-    
-    const rwdClass = data.reward >= 0 ? 'log-reward-pos' : 'log-reward-neg';
-    log('step', `[STEP] step=${stepCount} action=${currentAction} reward=${data.reward >= 0 ? '+' : ''}${(data.reward||0).toFixed(3)} cumulative=${cumulativeReward.toFixed(3)} done=${data.done}`);
-    if (data.info?.feedback) log('info', `       feedback="${data.info.feedback}"`);
-    
-    if (data.done) {
-      episodeActive = false;
-      log('end', `[END] success=${cumulativeReward >= 0.7} steps=${stepCount} score=${cumulativeReward.toFixed(3)}`);
-      document.getElementById('scoreStatus').textContent = cumulativeReward >= 0.7 ? '🎉 Episode passed!' : '⚠️ Below target (0.700)';
-      document.getElementById('scoreStatus').style.color = cumulativeReward >= 0.7 ? 'var(--green)' : 'var(--yellow)';
     }
-    
-    document.getElementById('actionContent').value = '';
-    
-  } catch(e) {
-    // Demo mode simulation
-    simulateDemoStep(currentAction, content);
-  }
-}
 
-function simulateDemoStep(action, content) {
-  stepCount++;
-  let reward = 0;
-  let feedback = '';
-  
-  if (action === 'classify') {
-    const valid = ['inquiry','refund','technical_issue','billing','account','shipping','complaint','appointment','feedback','proactive_engagement'];
-    reward = valid.some(v => content.toLowerCase().includes(v)) ? 0.7 : -0.2;
-    feedback = reward > 0 ? 'Correct classification!' : 'Wrong category — check workflow types';
-  } else if (action === 'respond') {
-    const empathy = ['sorry','apologize','understand','sincerely'].some(w => content.toLowerCase().includes(w));
-    reward = empathy ? 0.45 : 0.15;
-    feedback = empathy ? 'Empathetic & resolution-focused response' : 'Add empathy phrases';
-  } else if (action === 'escalate') {
-    reward = 0.3;
-    feedback = 'Escalation logged';
-  } else { reward = 0.1; feedback = 'Ticket closed'; }
-  
-  cumulativeReward = Math.min(cumulativeReward + reward, 1.0);
-  document.getElementById('stepCount').textContent = stepCount;
-  document.getElementById('rewardVal').textContent = cumulativeReward.toFixed(3);
-  document.getElementById('rewardBar').style.width = (cumulativeReward * 100) + '%';
-  updateScore(cumulativeReward);
-  log('step', `[STEP][demo] step=${stepCount} action=${action} reward=${reward >= 0 ? '+' : ''}${reward.toFixed(3)} cumulative=${cumulativeReward.toFixed(3)}`);
-  log('info', `       feedback="${feedback}"`);
-}
+    function filterByWorkflow(key) {
+      document.querySelectorAll('.wf-card').forEach(c => c.classList.remove('selected'));
+      document.querySelector(`[data-wf="${key}"]`)?.classList.add('selected');
+      log(`info`, `# Filter: showing ${key} workflow tickets`);
+    }
 
-function updateScore(val) {
-  const score = Math.min(Math.max(val, 0), 1);
-  document.getElementById('scoreText').textContent = score.toFixed(3);
-  const circumference = 377;
-  const offset = circumference - score * circumference;
-  document.getElementById('scoreFill').style.strokeDashoffset = offset;
-}
+    // ── Task Selection ─────────────────────────────────────────────────────────
+    function selectTask(taskId, btn) {
+      currentTask = taskId;
+      document.querySelectorAll('.task-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('taskVal').textContent = taskId.replace('task_', '');
+      log('info', `# Task selected: ${taskId}`);
+    }
 
-async function checkHealth() {
-  try {
-    const res = await fetch(`${API}/health`);
-    const data = await res.json();
-    log('info', `# Server: ${data.status} | Env: ${data.environment} | v${data.version}`);
-    log('info', `# Uptime: ${data.uptime_seconds}s`);
-  } catch(e) {
-    log('info', `# Demo Mode — connect server on port 7860 to run live`);
-  }
-}
+    // ── Action Selection ───────────────────────────────────────────────────────
+    function setAction(type) {
+      currentAction = type;
+      document.querySelectorAll('.action-btn').forEach(b => b.style.opacity = '0.6');
+      document.getElementById(`act-${type === 'close' ? 'close-btn' : type}`) ||
+        document.querySelector(`.action-btn.${type === 'close' ? 'close-btn' : type}`);
 
-async function startDemo() {
-  await resetEpisode();
-  setTimeout(() => {
+      const placeholders = {
+        classify: 'Enter category: inquiry | refund | technical_issue | billing | account | shipping | complaint | appointment | feedback | proactive_engagement',
+        respond: 'Write an empathetic, resolution-focused response to the customer...',
+        escalate: 'Reason for escalation (e.g. "angry customer, billing dispute over $200")...',
+        close: 'Closing message (e.g. "Ticket resolved — refund initiated. Is there anything else?")',
+      };
+      document.getElementById('actionContent').placeholder = placeholders[type] || '';
+      document.querySelectorAll('.action-btn').forEach(b => b.style.opacity = '1');
+
+      // Highlight selected
+      document.querySelectorAll('.action-btn').forEach(b => b.style.boxShadow = '');
+      const sel = document.querySelector(`.action-btn.${type === 'close' ? 'close-btn' : type}`);
+      if (sel) sel.style.boxShadow = '0 0 0 2px var(--primary)';
+    }
+
+    // ── API Calls ──────────────────────────────────────────────────────────────
+    async function resetEpisode() {
+      try {
+        const res = await fetch(`${API}/reset`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ task_id: currentTask })
+        });
+        const data = await res.json();
+
+        episodeActive = true;
+        cumulativeReward = 0;
+        stepCount = 0;
+
+        document.getElementById('ticketBox').textContent = data.ticket || 'No ticket loaded';
+        document.getElementById('statusVal').textContent = data.status || 'open';
+        document.getElementById('stepCount').textContent = '0';
+        document.getElementById('rewardVal').textContent = '0.000';
+        document.getElementById('rewardBar').style.width = '0%';
+        updateScore(0);
+
+        log('start', `[START] task=${currentTask} env=ai-customer-support-v1`);
+        log('info', `# Ticket: "${(data.ticket || '').slice(0, 80)}..."`);
+        log('info', `# Hint: ${data.hint || 'Complete the task workflow'}`);
+        if (data.hint) log('info', `# Allowed actions for this task: ${getAllowedActions()}`);
+
+      } catch (e) {
+        log('error', `[ERROR] Could not connect to server: ${e.message}`);
+        log('error', `# Make sure server is running on port 7860`);
+        // Demo mode — show sample ticket
+        document.getElementById('ticketBox').textContent =
+          '⚡ Demo Mode: "I was charged twice this month for my subscription. Please fix this billing error immediately!"';
+      }
+    }
+
+    async function executeStep() {
+      const content = document.getElementById('actionContent').value.trim();
+      if (!content) { log('error', '# Error: Enter action content first'); return; }
+
+      try {
+        const res = await fetch(`${API}/step`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action_type: currentAction, content, confidence: 0.9 })
+        });
+        const data = await res.json();
+
+        stepCount++;
+        cumulativeReward = data.cumulative_reward || 0;
+
+        document.getElementById('stepCount').textContent = stepCount;
+        document.getElementById('statusVal').textContent = data.observation?.status || '—';
+        document.getElementById('rewardVal').textContent = cumulativeReward.toFixed(3);
+
+        const pct = Math.min(Math.max((cumulativeReward / 1.0) * 100, 0), 100);
+        document.getElementById('rewardBar').style.width = pct + '%';
+        updateScore(cumulativeReward);
+
+        const rwdClass = data.reward >= 0 ? 'log-reward-pos' : 'log-reward-neg';
+        log('step', `[STEP] step=${stepCount} action=${currentAction} reward=${data.reward >= 0 ? '+' : ''}${(data.reward || 0).toFixed(3)} cumulative=${cumulativeReward.toFixed(3)} done=${data.done}`);
+        if (data.info?.feedback) log('info', `       feedback="${data.info.feedback}"`);
+
+        if (data.done) {
+          episodeActive = false;
+          log('end', `[END] success=${cumulativeReward >= 0.7} steps=${stepCount} score=${cumulativeReward.toFixed(3)}`);
+          document.getElementById('scoreStatus').textContent = cumulativeReward >= 0.7 ? '🎉 Episode passed!' : '⚠️ Below target (0.700)';
+          document.getElementById('scoreStatus').style.color = cumulativeReward >= 0.7 ? 'var(--green)' : 'var(--yellow)';
+        }
+
+        document.getElementById('actionContent').value = '';
+
+      } catch (e) {
+        // Demo mode simulation
+        simulateDemoStep(currentAction, content);
+      }
+    }
+
+    function simulateDemoStep(action, content) {
+      stepCount++;
+      let reward = 0;
+      let feedback = '';
+
+      if (action === 'classify') {
+        const valid = ['inquiry', 'refund', 'technical_issue', 'billing', 'account', 'shipping', 'complaint', 'appointment', 'feedback', 'proactive_engagement'];
+        reward = valid.some(v => content.toLowerCase().includes(v)) ? 0.7 : -0.2;
+        feedback = reward > 0 ? 'Correct classification!' : 'Wrong category — check workflow types';
+      } else if (action === 'respond') {
+        const empathy = ['sorry', 'apologize', 'understand', 'sincerely'].some(w => content.toLowerCase().includes(w));
+        reward = empathy ? 0.45 : 0.15;
+        feedback = empathy ? 'Empathetic & resolution-focused response' : 'Add empathy phrases';
+      } else if (action === 'escalate') {
+        reward = 0.3;
+        feedback = 'Escalation logged';
+      } else { reward = 0.1; feedback = 'Ticket closed'; }
+
+      cumulativeReward = Math.min(cumulativeReward + reward, 1.0);
+      document.getElementById('stepCount').textContent = stepCount;
+      document.getElementById('rewardVal').textContent = cumulativeReward.toFixed(3);
+      document.getElementById('rewardBar').style.width = (cumulativeReward * 100) + '%';
+      updateScore(cumulativeReward);
+      log('step', `[STEP][demo] step=${stepCount} action=${action} reward=${reward >= 0 ? '+' : ''}${reward.toFixed(3)} cumulative=${cumulativeReward.toFixed(3)}`);
+      log('info', `       feedback="${feedback}"`);
+    }
+
+    function updateScore(val) {
+      const score = Math.min(Math.max(val, 0), 1);
+      document.getElementById('scoreText').textContent = score.toFixed(3);
+      const circumference = 377;
+      const offset = circumference - score * circumference;
+      document.getElementById('scoreFill').style.strokeDashoffset = offset;
+    }
+
+    async function checkHealth() {
+      try {
+        const res = await fetch(`${API}/health`);
+        const data = await res.json();
+        log('info', `# Server: ${data.status} | Env: ${data.environment} | v${data.version}`);
+        log('info', `# Uptime: ${data.uptime_seconds}s`);
+      } catch (e) {
+        log('info', `# Demo Mode — connect server on port 7860 to run live`);
+      }
+    }
+
+    async function startDemo() {
+      await resetEpisode();
+      setTimeout(() => {
+        setAction('classify');
+        document.getElementById('actionContent').value = 'billing';
+        setTimeout(() => executeStep(), 800);
+      }, 600);
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+    function getAllowedActions() {
+      const map = { task_easy: 'classify', task_medium: 'classify, respond', task_hard: 'classify, respond, escalate, close' };
+      return map[currentTask] || 'classify';
+    }
+
+    function log(type, msg) {
+      const box = document.getElementById('logBox');
+      const div = document.createElement('div');
+      const cls = { start: 'log-start', step: 'log-step', end: 'log-end', error: 'log-error', info: 'log-info' }[type] || 'log-info';
+      div.className = `log-entry ${cls}`;
+      div.textContent = msg;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function showSection(sec) {
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      event.target.classList.add('active');
+      const targets = { simulator: 'simulator', workflows: 'workflows', analytics: 'workflows-section', api: 'api' };
+      const el = document.getElementById(targets[sec]);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Pre-populate helpful action content on load
     setAction('classify');
-    document.getElementById('actionContent').value = 'billing';
-    setTimeout(() => executeStep(), 800);
-  }, 600);
-}
-
-// ── Helpers ────────────────────────────────────────────────────────────────
-function getAllowedActions() {
-  const map = {task_easy:'classify',task_medium:'classify, respond',task_hard:'classify, respond, escalate, close'};
-  return map[currentTask] || 'classify';
-}
-
-function log(type, msg) {
-  const box = document.getElementById('logBox');
-  const div = document.createElement('div');
-  const cls = {start:'log-start',step:'log-step',end:'log-end',error:'log-error',info:'log-info'}[type] || 'log-info';
-  div.className = `log-entry ${cls}`;
-  div.textContent = msg;
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
-}
-
-function showSection(sec) {
-  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-  event.target.classList.add('active');
-  const targets = {simulator:'simulator',workflows:'workflows',analytics:'workflows-section',api:'api'};
-  const el = document.getElementById(targets[sec]);
-  if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
-}
-
-// Pre-populate helpful action content on load
-setAction('classify');
-</script>
+  </script>
 </body>
+
 </html>
