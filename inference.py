@@ -23,6 +23,7 @@ import sys
 from typing import Optional, Dict, Any
 
 import requests
+from openai import OpenAI
 
 
 # ---------------------------------------------------------------------------
@@ -38,25 +39,16 @@ HF_TOKEN = os.environ.get("HF_TOKEN", "")
 # ---------------------------------------------------------------------------
 
 def log_start(task_id: str, model: str = "rule-based"):
-    print(f"\n{'='*70}")
-    print(f"[START] task={task_id} env=ai-customer-support-v1 model={model}")
-    print(f"{'='*70}")
+    print(f"[START] task={task_id} env=custom model={model}")
 
 def log_step(step: int, action_type: str, content: str, reward: float,
              done: bool, cumulative: float, feedback: str = ""):
-    content_short = content[:80].replace("\n", " ")
-    print(f"[STEP] step={step} action={action_type} reward={reward:+.3f} "
-          f"cumulative={cumulative:.3f} done={done}")
-    print(f"       content=\"{content_short}\"")
-    if feedback:
-        print(f"       feedback=\"{feedback}\"")
+    print(f"[STEP] step={step} action={action_type} reward={reward} done={done}")
 
 def log_end(task_id: str, steps: int, final_score: float, rewards: list):
-    reward_str = "[" + ", ".join(f"{r:+.3f}" for r in rewards) + "]"
+    reward_str = "[" + ",".join(str(r) for r in rewards) + "]"
     success = final_score >= 0.7
-    print(f"\n[END] task={task_id} success={success} steps={steps} "
-          f"score={final_score:.3f} rewards={reward_str}")
-    print(f"{'='*70}\n")
+    print(f"[END] success={success} steps={steps} score={final_score} rewards={reward_str}")
 
 
 # ---------------------------------------------------------------------------
@@ -245,61 +237,71 @@ def should_escalate(category: str, ticket_text: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# AI Agent (HF Inference API) — optional, requires HF_TOKEN env var
+# AI Agent (HF Inference API using standard OpenAI library) — requires HF_TOKEN
 # ---------------------------------------------------------------------------
+
+llm_client = OpenAI(
+    base_url="https://api-inference.huggingface.co/v1/",
+    api_key=HF_TOKEN or "dummy_key"
+)
+
+# You can use any HuggingFace model supporting Messages API
+MODEL_NAME = "meta-llama/Meta-Llama-3-8B-Instruct"
 
 def ai_classify(ticket: str) -> str:
     if not HF_TOKEN:
         return rule_based_classify(ticket)
-    prompt = (
-        "You are a customer support classifier. Classify into one category.\n"
-        "Categories: inquiry, refund, technical_issue, billing, account, shipping, "
-        "complaint, appointment, feedback, proactive_engagement\n\n"
-        f"Ticket: {ticket}\n\nReply with ONLY the category name:"
-    )
+    
+    system_prompt = "You are a customer support classifier. Valid categories: inquiry, refund, technical_issue, billing, account, shipping, complaint, appointment, feedback, proactive_engagement. Reply with ONLY the category name."
+    
     try:
-        r = requests.post(
-            "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2",
-            headers={"Authorization": f"Bearer {HF_TOKEN}"},
-            json={"inputs": prompt, "parameters": {"max_new_tokens": 20, "temperature": 0.1}},
-            timeout=30,
+        response = llm_client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": ticket}
+            ],
+            max_tokens=20,
+            temperature=0.1
         )
-        if r.status_code == 200:
-            text = r.json()[0].get("generated_text", "")
-            words = text.strip().split()
-            if words:
-                last = words[-1].lower().strip('.,!?"')
-                valid = {"inquiry", "refund", "technical_issue", "billing", "account",
-                         "shipping", "complaint", "appointment", "feedback", "proactive_engagement"}
-                if last in valid:
-                    return last
-    except Exception:
-        pass
+        
+        text = response.choices[0].message.content
+        words = text.strip().split()
+        if words:
+            last = words[-1].lower().strip('.,!?"\n')
+            valid = {"inquiry", "refund", "technical_issue", "billing", "account",
+                     "shipping", "complaint", "appointment", "feedback", "proactive_engagement"}
+            if last in valid:
+                return last
+    except Exception as e:
+        print(f"  [AI Classifier Exception] {e}")
+
     return rule_based_classify(ticket)
 
 
 def ai_respond(category: str, ticket: str) -> str:
     if not HF_TOKEN:
         return rule_based_respond(category)
-    prompt = (
-        f"You are a professional customer support agent. Write a short, empathetic response.\n\n"
-        f"Customer ticket ({category}): {ticket}\n\nResponse:"
-    )
+        
+    system_prompt = f"You are a professional customer support agent addressing a '{category}' ticket. Provide a short, empathetic response directly to the user fulfilling their needs. Keep it under 100 words."
+    
     try:
-        r = requests.post(
-            "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2",
-            headers={"Authorization": f"Bearer {HF_TOKEN}"},
-            json={"inputs": prompt, "parameters": {"max_new_tokens": 120, "temperature": 0.7}},
-            timeout=30,
+        response = llm_client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Customer ticket: {ticket}"}
+            ],
+            max_tokens=150,
+            temperature=0.7
         )
-        if r.status_code == 200:
-            text = r.json()[0].get("generated_text", "")
-            if "Response:" in text:
-                text = text.split("Response:")[-1].strip()
-            if len(text.split()) >= 10:
-                return text[:500]
-    except Exception:
-        pass
+        
+        text = response.choices[0].message.content.strip()
+        if len(text.split()) >= 10:
+            return text[:500]
+    except Exception as e:
+        print(f"  [AI Responder Exception] {e}")
+        
     return rule_based_respond(category)
 
 

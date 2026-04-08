@@ -1,0 +1,22 @@
+[project]
+name = "ai-customer-support-workflow"
+version = "0.1.0"
+description = "OpenEnv AI Customer Support Workflow"
+authors = [
+    {name = "Ashmit Gautam"}
+]
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "requests",
+    "openai",
+    "streamlit"
+]
+
+[tool.setuptools]
+packages = ["server"]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
