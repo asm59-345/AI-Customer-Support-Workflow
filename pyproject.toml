@@ -21,3 +21,6 @@ packages = ["server"]
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[project.scripts]
+server = "server.app:main"
