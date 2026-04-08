@@ -12,7 +12,8 @@ dependencies = [
     "requests",
     "openai",
     "streamlit",
-    "openenv-core>=0.2.0"
+    "openenv-core>=0.2.0",
+    "huggingface-hub"
 ]
 
 [tool.setuptools]

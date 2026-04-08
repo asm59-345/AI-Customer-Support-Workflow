@@ -19,6 +19,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
+    { name = "huggingface-hub" },
     { name = "openai" },
     { name = "openenv-core" },
     { name = "pydantic" },
@@ -30,6 +31,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi" },
+    { name = "huggingface-hub" },
     { name = "openai" },
     { name = "openenv-core", specifier = ">=0.2.0" },
     { name = "pydantic" },
