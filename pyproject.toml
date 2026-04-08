@@ -1,0 +1,22 @@
+[project]
+name = "support-openenv"
+version = "0.1.0"
+description = "AI Customer Support OpenEnv Environment"
+authors = [
+    {name = "Ashmit Gautam"}
+]
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "requests",
+    "openai",
+    "streamlit"
+]
+
+[tool.setuptools]
+packages = ["server"]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
