@@ -31,7 +31,7 @@ from openai import OpenAI
 # ---------------------------------------------------------------------------
 
 DEFAULT_SERVER = os.environ.get("OPENENV_URL", "http://localhost:7860")
-HF_TOKEN = os.environ.get("HF_TOKEN", "")
+
 
 
 # ---------------------------------------------------------------------------
@@ -241,16 +241,15 @@ def should_escalate(category: str, ticket_text: str) -> bool:
 # ---------------------------------------------------------------------------
 
 llm_client = OpenAI(
-    base_url="https://api-inference.huggingface.co/v1/",
-    api_key=HF_TOKEN or "dummy_key"
+    base_url=os.environ["API_BASE_URL"],
+    api_key=os.environ["API_KEY"]
 )
 
 # You can use any HuggingFace model supporting Messages API
-MODEL_NAME = "meta-llama/Meta-Llama-3-8B-Instruct"
+MODEL_NAME = os.environ["MODEL_NAME"]
 
 def ai_classify(ticket: str) -> str:
-    if not HF_TOKEN:
-        return rule_based_classify(ticket)
+
     
     system_prompt = "You are a customer support classifier. Valid categories: inquiry, refund, technical_issue, billing, account, shipping, complaint, appointment, feedback, proactive_engagement. Reply with ONLY the category name."
     
@@ -280,8 +279,7 @@ def ai_classify(ticket: str) -> str:
 
 
 def ai_respond(category: str, ticket: str) -> str:
-    if not HF_TOKEN:
-        return rule_based_respond(category)
+
         
     system_prompt = f"You are a professional customer support agent addressing a '{category}' ticket. Provide a short, empathetic response directly to the user fulfilling their needs. Keep it under 100 words."
     
@@ -315,7 +313,7 @@ def run_episode(client: EnvClient, task_id: str, mode: str = "rule",
     Run a single episode. Always grades at the end (score 0-1).
     Never returns raw cumulative_reward which can exceed 1.0.
     """
-    model_name = "hf-mistral-7b" if (mode == "ai" and HF_TOKEN) else "rule-based-v1"
+    model_name = "hackathon-proxy-model" if mode == "ai" else "rule-based-v1"
     log_start(task_id, model_name)
 
     obs = client.reset(task_id=task_id, ticket_index=ticket_index)
