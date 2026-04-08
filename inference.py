@@ -240,13 +240,17 @@ def should_escalate(category: str, ticket_text: str) -> bool:
 # AI Agent (HF Inference API using standard OpenAI library) — requires HF_TOKEN
 # ---------------------------------------------------------------------------
 
-llm_client = OpenAI(
-    base_url=os.environ["API_BASE_URL"],
-    api_key=os.environ["API_KEY"]
-)
+MODEL_NAME = os.environ.get("MODEL_NAME", "gpt-4o-mini")
+API_BASE_URL = os.environ.get("API_BASE_URL", "https://api.openai.com/v1")
+API_KEY = os.environ.get("API_KEY", "")
 
-# You can use any HuggingFace model supporting Messages API
-MODEL_NAME = os.environ["MODEL_NAME"]
+try:
+    llm_client = OpenAI(
+        base_url=API_BASE_URL,
+        api_key=API_KEY
+    )
+except Exception as e:
+    print(f"[ERROR] Failed to init OpenAI client: {e}", flush=True)
 
 def ai_classify(ticket: str) -> str:
 
