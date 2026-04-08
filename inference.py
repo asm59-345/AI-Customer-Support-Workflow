@@ -241,13 +241,11 @@ def should_escalate(category: str, ticket_text: str) -> bool:
 # ---------------------------------------------------------------------------
 
 MODEL_NAME = os.environ.get("MODEL_NAME", "gpt-4o-mini")
-API_BASE_URL = os.environ.get("API_BASE_URL", "https://api.openai.com/v1")
-API_KEY = os.environ.get("API_KEY", "")
 
 try:
     llm_client = OpenAI(
-        base_url=API_BASE_URL,
-        api_key=API_KEY
+        base_url=os.environ["API_BASE_URL"],
+        api_key=os.environ["API_KEY"]
     )
 except Exception as e:
     print(f"[ERROR] Failed to init OpenAI client: {e}", flush=True)
@@ -314,7 +312,7 @@ def ai_respond(category: str, ticket: str) -> str:
 def run_episode(client: EnvClient, task_id: str, mode: str = "rule",
                 ticket_index: Optional[int] = None) -> float:
     """
-    Run a single episode. Always grades at the end (score 0-1).
+                        Run a single episode. Always grades at the end (score 0-1).
     Never returns raw cumulative_reward which can exceed 1.0.
     """
     model_name = "hackathon-proxy-model" if mode == "ai" else "rule-based-v1"
@@ -407,7 +405,7 @@ def run_episode(client: EnvClient, task_id: str, mode: str = "rule",
 def main():
     parser = argparse.ArgumentParser(description="AI Customer Support OpenEnv Inference")
     parser.add_argument("--url", default=DEFAULT_SERVER)
-    parser.add_argument("--mode", choices=["rule", "ai"], default="rule")
+    parser.add_argument("--mode", choices=["rule", "ai"], default="ai")
     parser.add_argument("--task", choices=["task_easy", "task_medium", "task_hard", "all"],
                         default="all")
     parser.add_argument("--ticket", type=int, default=None, help="Force specific ticket index")
