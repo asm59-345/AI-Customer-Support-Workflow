@@ -13,7 +13,9 @@ dependencies = [
     "openai",
     "streamlit",
     "openenv-core>=0.2.0",
-    "huggingface-hub"
+    "huggingface-hub",
+    "torch",
+    "transformers"
 ]
 
 [tool.setuptools]

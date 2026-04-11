@@ -17,7 +17,7 @@ import time
 import os
 import sys
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -38,6 +38,26 @@ from app.tasks import list_tasks
 from app.grader import grade_output
 from server.db import create_user, verify_user
 from pydantic import BaseModel
+from openai import OpenAI
+
+try:
+    llm_client = OpenAI(
+        base_url=os.environ.get("API_BASE_URL", "https://api.openai.com/v1"),
+        api_key=os.environ.get("API_KEY", "dummy_key")
+    )
+    MODEL_NAME = os.environ.get("MODEL_NAME", "gpt-4o-mini")
+except Exception as e:
+    llm_client = None
+
+class GenerateTicketRequest(BaseModel):
+    category: str
+    domain: Optional[str] = "general"
+    difficulty: Optional[str] = "normal"
+    sentiment: Optional[str] = "neutral"
+    noise_level: Optional[float] = 0.0
+
+class AnalyzeRequest(BaseModel):
+    text: str
 
 class SignupRequest(BaseModel):
     username: str
@@ -142,6 +162,47 @@ async def api_login(req: LoginRequest):
     return {"status": "success", "user": {"id": user["id"], "username": user["username"]}}
 
 
+@app.post("/api/generate_ticket", tags=["GenAI"])
+async def generate_ticket(req: GenerateTicketRequest):
+    """Dynamically generate a customer support ticket using Gen AI."""
+    if not llm_client:
+        raise HTTPException(status_code=503, detail="Gen AI client not configured.")
+    try:
+        sys_prompt = (
+            f"You are a customer support ticket generator for the {req.domain} domain. "
+            f"Generate a realistic ({req.difficulty} difficulty) customer ticket for "
+            f"the category: '{req.category}'. The customer sentiment is {req.sentiment}. "
+            f"Noise level config (0.0 to 1.0): {req.noise_level}. Reply with the ticket text only."
+        )
+        resp = llm_client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[{"role": "system", "content": sys_prompt}],
+            max_tokens=60,
+            temperature=0.8
+        )
+        return {"category": req.category, "text": resp.choices[0].message.content.strip().strip('"')}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/analyze", tags=["GenAI"])
+async def analyze_sentiment(req: AnalyzeRequest):
+    """Analyze the sentiment and intent of a ticket using Gen AI/LLM instead of heavy DL (Torch) pipeline."""
+    if not llm_client:
+        return {"sentiment": "neutral", "score": 0.5}
+    try:
+        sys_prompt = "You are a sentiment analyzer. Analyze this customer ticket and reply ONLY with one of: positive, neutral, negative."
+        resp = llm_client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[{"role": "system", "content": sys_prompt}, {"role": "user", "content": req.text}],
+            max_tokens=10,
+            temperature=0.1
+        )
+        val = resp.choices[0].message.content.strip().lower().strip('."\'')
+        s_score = 0.9 if val == "positive" else (0.1 if val == "negative" else 0.5)
+        return {"sentiment": val, "score": s_score}
+    except Exception:
+        return {"sentiment": "neutral", "score": 0.5}
+
 @app.get("/health", response_model=HealthResponse, tags=["System"])
 async def health():
     """Health check endpoint — confirms server is running."""
@@ -172,7 +233,12 @@ async def reset(body: ResetRequest = None):
         body = ResetRequest()
 
     try:
-        obs = env.reset(task_id=body.task_id or "task_easy", ticket_index=body.ticket_index)
+        obs = env.reset(
+            task_id=body.task_id or "task_easy",
+            ticket_index=body.ticket_index,
+            custom_ticket_text=body.custom_ticket_text,
+            custom_ticket_category=body.custom_ticket_category
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -228,6 +294,22 @@ async def grade(request: GradeRequest):
     current_state = env.state()
     ticket_index = getattr(env, "_ticket_index", 0)
     result = grade_output(request.output, request.task_id, ticket_index)
+    
+    # Self-Evolving Environment connection
+    if hasattr(env, "_rolling_scores"):
+        env._rolling_scores.append(result.score)
+        if len(env._rolling_scores) > 10:
+            env._rolling_scores.pop(0)
+
+    # Global Metrics computation
+    if "passed_episodes" not in _metrics:
+        _metrics["passed_episodes"] = 0
+    if result.score >= 0.7:
+        _metrics["passed_episodes"] += 1
+        
+    tot = max(1, _metrics["total_episodes"])
+    env._resolution_rate = _metrics["passed_episodes"] / tot
+
     return result
 
 

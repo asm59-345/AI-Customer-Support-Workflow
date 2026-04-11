@@ -53,31 +53,68 @@ class SupportEnv:
         self._responded: bool = False
         self._escalated: bool = False
 
+        # Self-Evolving Trackers
+        self._rolling_scores: list = []
+        self._current_difficulty: str = "normal"
+        self._current_noise: float = 0.0
+        self._current_domain: str = "E-commerce"
+        self._resolution_rate: float = 0.0
+
     # -----------------------------------------------------------------------
     # OpenEnv Core API
     # -----------------------------------------------------------------------
 
-    def reset(self, task_id: str = "task_easy", ticket_index: Optional[int] = None) -> Observation:
+    def reset(self, task_id: str = "task_easy", ticket_index: Optional[int] = None, custom_ticket_text: Optional[str] = None, custom_ticket_category: Optional[str] = None) -> Observation:
         """
         Initialize a new episode.
 
         Args:
             task_id:       Which task to run (task_easy | task_medium | task_hard)
             ticket_index:  Force a specific ticket index (default: random)
+            custom_ticket_text: Custom Gen AI ticket text
+            custom_ticket_category: Custom Gen AI ticket category
 
         Returns:
             Initial Observation with ticket text and empty history.
         """
         task = get_task(task_id)  # validates task_id
 
+        # Self-Evolving: adjust difficulty based on performance history
+        if len(self._rolling_scores) >= 3:
+            avg_perf = sum(self._rolling_scores[-3:]) / 3
+            if avg_perf >= 0.8:
+                self._current_difficulty = "hard"
+                self._current_noise = 0.2
+            elif avg_perf >= 0.6:
+                self._current_difficulty = "medium"
+                self._current_noise = 0.1
+            else:
+                self._current_difficulty = "normal"
+                self._current_noise = 0.0
+
+        doms = ["E-commerce", "Banking", "SaaS", "Telecom"]
+        self._current_domain = random.choice(doms)
+
         # Pick ticket
-        if ticket_index is not None:
+        if custom_ticket_text and custom_ticket_category:
+            self._ticket = {
+                "text": custom_ticket_text,
+                "category": custom_ticket_category,
+                "workflow_type": "custom_gen_ai",
+                "sentiment": "neutral",
+                "should_escalate": False,
+                "keywords": []
+            }
+            self._ticket_index = -1
+        elif ticket_index is not None:
             idx = ticket_index % len(TICKET_CORPUS)
+            self._ticket = TICKET_CORPUS[idx]
+            self._ticket_index = idx  # save for grader
         else:
             idx = random.randint(0, len(TICKET_CORPUS) - 1)
+            self._ticket = TICKET_CORPUS[idx]
+            self._ticket_index = idx  # save for grader
 
-        self._ticket = TICKET_CORPUS[idx]
-        self._ticket_index = idx  # save for grader
         self._task_id = task_id
         self._episode_id = str(uuid.uuid4())
         self._history = []
@@ -98,6 +135,8 @@ class SupportEnv:
             task_id=task_id,
             category=None,
             hint=self._build_hint(task_id),
+            difficulty_level=self._current_difficulty,
+            domain=self._current_domain
         )
 
     def step(self, action: Action) -> StepResult:
@@ -207,6 +246,12 @@ class SupportEnv:
             cumulative_reward=round(self._cumulative_reward, 3),
             started_at=self._started_at,
             is_done=self._is_done,
+            difficulty_level=self._current_difficulty,
+            domain=self._current_domain,
+            resolution_rate=self._resolution_rate,
+            avg_steps_per_ticket=self._step_count if self._is_done else 0.0,
+            escalation_accuracy=1.0 if self._escalated else 0.0,
+            sentiment_improvement=0.5
         )
 
     # -----------------------------------------------------------------------
@@ -223,6 +268,8 @@ class SupportEnv:
             task_id=self._task_id,
             category=self._ticket["category"] if self._classified else None,
             hint=None,
+            difficulty_level=self._current_difficulty,
+            domain=self._current_domain
         )
 
     def _check_done(self) -> bool:

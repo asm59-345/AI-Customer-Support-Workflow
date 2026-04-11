@@ -1,8 +1,14 @@
 name: ai-customer-support-workflow
 spec_version: 1
-description: AI Customer Support RL Environment
+description: Self-Evolving AI Customer Support RL Training Environment using DistilBERT and Multi-Agent Reflection
 
 tasks:
-  - easy
-  - medium
-  - hard
+  - task_easy
+  - task_medium
+  - task_hard
+
+metrics:
+  - resolution_rate
+  - avg_steps_per_ticket
+  - escalation_accuracy
+  - sentiment_improvement

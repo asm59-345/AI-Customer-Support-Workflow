@@ -220,15 +220,8 @@ def grade_step_action(action_type: str, content: str, ticket: Dict,
 
 def grade_output(output: str, task_id: str, ticket_index: int = 0) -> GradeResult:
     """
-    Grade the complete agent output against the task criteria.
-
-    Weight design ensures max achievable score >= target for each task:
-      task_easy:   cls(max 0.7) * 1.0                          -> max 0.70  (target 0.70)
-      task_medium: cls(max 0.7) * 0.5 + rsp(max 0.5) * 1.0    -> max 0.85  (target 0.75)
-      task_hard:   cls * 0.5   + rsp * 1.0 + esc(max 0.3)*0.5 -> max 1.00  (target 0.80)
-
-    IMPORTANT: passes only the response text (not the classification prefix)
-    to _score_response_quality so keyword matching is accurate.
+    Grade the complete agent output against the task criteria using a multi-dimensional reward logic.
+    formula: 0.3 * classification + 0.3 * response_quality + 0.2 * sentiment_handling + 0.2 * escalation/efficiency
     """
     text = _normalize(output)
     ticket = TICKET_CORPUS[ticket_index % len(TICKET_CORPUS)]
@@ -241,36 +234,65 @@ def grade_output(output: str, task_id: str, ticket_index: int = 0) -> GradeResul
     classification_part = parts[0].strip()
     response_part = parts[1].strip() if len(parts) > 1 else output
 
+    cls_score, cls_fb = _check_classification(classification_part, ticket["category"])
+    feedback.append(cls_fb)
+    
+    rsp_score, rsp_fbs = _score_response_quality(response_part, ticket)
+    feedback.extend(rsp_fbs)
+
+    did_esc = "escalat" in text
+
+    # Normalization (classification: max 0.7 -> 1.0, quality: max 0.5 -> 1.0)
+    norm_cls = max(0.0, cls_score / 0.7)
+    norm_rsp = max(0.0, rsp_score / 0.5)
+
+    # Sentiment handling (check if angry/upset/frustrated handled well)
+    sentiment_handling = 1.0
+    if ticket.get("sentiment") in ["angry", "very_angry", "furious", "upset", "frustrated"]:
+        if "sorry" not in text and "apologize" not in text and "understand" not in text:
+            sentiment_handling = 0.0
+            feedback.append("❌ Failed to de-escalate negative sentiment.")
+        else:
+            feedback.append("✅ Successfully acknowledged negative sentiment.")
+
+    esc_score, esc_fb = _check_escalation(did_esc, ticket.get("should_escalate", False))
+    norm_esc = max(0.0, (esc_score + 0.3) / 0.6) # Normalize -0.3..0.3 to 0..1
+
+    # Penalties
+    penalty = 0.0
+    if "http" in text or "1-800" in text or "555-" in text:
+        penalty += 0.1
+        feedback.append("❌ Penalty: Hallucinated link or phone number.")
+    
+    words = response_part.split()
+    if len(words) > 10 and len(set(words)) < len(words) * 0.4:
+        penalty += 0.05
+        feedback.append("❌ Penalty: High repetition detected.")
+
+    if rsp_score <= 0.05 and len(words) > 5:
+        penalty += 0.1
+        feedback.append("❌ Penalty: Irrelevant response.")
+
     if task_id == "task_easy":
-        cls_score, cls_fb = _check_classification(classification_part, ticket["category"])
-        total_score = max(0.0, cls_score)
-        feedback.append(cls_fb)
+        total_score = norm_cls
         criteria_met["correct_classification"] = cls_score > 0.4
 
     elif task_id == "task_medium":
-        cls_score, cls_fb = _check_classification(classification_part, ticket["category"])
-        rsp_score, rsp_fbs = _score_response_quality(response_part, ticket)
-        total_score = max(0.0, cls_score * 0.5 + rsp_score * 1.0)
-        feedback.append(cls_fb)
-        feedback.extend(rsp_fbs)
+        total_score = 0.4 * norm_cls + 0.4 * norm_rsp + 0.2 * sentiment_handling
         criteria_met["correct_classification"] = cls_score > 0.4
         criteria_met["quality_response"] = rsp_score > 0.2
 
     elif task_id == "task_hard":
-        cls_score, cls_fb = _check_classification(classification_part, ticket["category"])
-        rsp_score, rsp_fbs = _score_response_quality(response_part, ticket)
-        did_esc = "escalat" in text
-        esc_score, esc_fb = _check_escalation(did_esc, ticket["should_escalate"])
-        total_score = max(0.0, cls_score * 0.5 + rsp_score * 1.0 + esc_score * 0.5)
-        feedback.append(cls_fb)
-        feedback.extend(rsp_fbs)
-        feedback.append(esc_fb)
+        total_score = 0.3 * norm_cls + 0.3 * norm_rsp + 0.2 * sentiment_handling + 0.2 * norm_esc
         criteria_met["correct_classification"] = cls_score > 0.4
         criteria_met["quality_response"] = rsp_score > 0.2
         criteria_met["correct_escalation"] = esc_score > 0.0
+        feedback.append(esc_fb)
+
+    final_score = max(0.0, min(total_score - penalty, 1.0))
 
     return GradeResult(
-        score=round(min(total_score, 1.0), 3),
+        score=round(final_score, 3),
         feedback=feedback,
         criteria_met=criteria_met,
         task_id=task_id,

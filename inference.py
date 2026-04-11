@@ -237,7 +237,7 @@ def should_escalate(category: str, ticket_text: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# AI Agent (HF Inference API using standard OpenAI library) — requires HF_TOKEN
+# AI Agent & Critics
 # ---------------------------------------------------------------------------
 
 MODEL_NAME = os.environ.get("MODEL_NAME", "gpt-4o-mini")
@@ -249,6 +249,34 @@ try:
     )
 except Exception as e:
     print(f"[ERROR] Failed to init OpenAI client: {e}", flush=True)
+
+try:
+    from transformers import pipeline
+    print("Loading DistilBERT CPU model for Sentiment Analysis...", flush=True)
+    sentiment_analyzer = pipeline(
+        "sentiment-analysis", 
+        model="distilbert-base-uncased-finetuned-sst-2-english", 
+        device=-1
+    )
+    print("DistilBERT loaded successfully.", flush=True)
+except Exception as e:
+    print(f"[WARNING] DistilBERT not available: {e}", flush=True)
+    sentiment_analyzer = None
+
+def get_sentiment(ticket: str) -> str:
+    if sentiment_analyzer:
+        try:
+            res = sentiment_analyzer(ticket[:512])[0]
+            if res['label'] == 'NEGATIVE' and res['score'] > 0.8:
+                return "angry"
+            elif res['label'] == 'NEGATIVE':
+                return "upset"
+            elif res['label'] == 'POSITIVE' and res['score'] > 0.8:
+                return "very_positive"
+            return "neutral"
+        except:
+            pass
+    return "neutral"
 
 def ai_classify(ticket: str) -> str:
 
@@ -280,17 +308,21 @@ def ai_classify(ticket: str) -> str:
     return rule_based_classify(ticket)
 
 
-def ai_respond(category: str, ticket: str) -> str:
-
+def ai_respond(category: str, ticket: str, sentiment: str = "neutral", previous_response: str = None, critic_feedback: str = None) -> str:
         
-    system_prompt = f"You are a professional customer support agent addressing a '{category}' ticket. Provide a short, empathetic response directly to the user fulfilling their needs. Keep it under 100 words."
+    if previous_response:
+        system_prompt = f"You are a professional customer support agent. The customer is feeling {sentiment}. Rewrite the response to address this feedback: {critic_feedback}"
+        user_content = f"Ticket: {ticket}\nPrevious Draft: {previous_response}"
+    else:
+        system_prompt = f"You are a professional customer support agent addressing a '{category}' ticket. The customer is feeling {sentiment}. Provide a short, empathetic response directly to the user fulfilling their needs. Keep it under 100 words."
+        user_content = f"Customer ticket: {ticket}"
     
     try:
         response = llm_client.chat.completions.create(
             model=MODEL_NAME,
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Customer ticket: {ticket}"}
+                {"role": "user", "content": user_content}
             ],
             max_tokens=150,
             temperature=0.7
@@ -303,6 +335,25 @@ def ai_respond(category: str, ticket: str) -> str:
         print(f"  [AI Responder Exception] {e}")
         
     return rule_based_respond(category)
+
+
+def critic_agent(response: str, ticket: str) -> float:
+    """Critic Agent evaluates the response and returns a score from 0.0 to 1.0."""
+    sys_prompt = "You are an expert customer support critic. Evaluate the response to the ticket. Return ONLY a single float score from 0.0 to 1.0 representing response quality (empathy + correctness)."
+    try:
+        resp = llm_client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {"role": "system", "content": sys_prompt},
+                {"role": "user", "content": f"Ticket: {ticket}\nResponse: {response}"}
+            ],
+            max_tokens=5,
+            temperature=0.0
+        )
+        score = float(resp.choices[0].message.content.strip())
+        return score
+    except Exception as e:
+        return 0.8  # Fallback score if evaluation fails
 
 
 # ---------------------------------------------------------------------------
@@ -340,8 +391,18 @@ def run_episode(client: EnvClient, task_id: str, mode: str = "rule",
              result.get("info", {}).get("feedback", ""))
 
     if not result["done"] and task_id in ("task_medium", "task_hard"):
-        # ── Step 2: Respond ──────────────────────────────────────────────────
-        response = ai_respond(category, ticket_text) if mode == "ai" else rule_based_respond(category)
+        # ── Step 2: Respond (With Reflection & Critic loop) ──────────────────
+        sentiment = get_sentiment(ticket_text) if mode == "ai" else "neutral"
+        response = ai_respond(category, ticket_text, sentiment) if mode == "ai" else rule_based_respond(category)
+        
+        if mode == "ai":
+            critic_score = critic_agent(response, ticket_text)
+            if critic_score < 0.8:
+                print(f"    [Critic] Generated response score {critic_score:.2f} < 0.8. Reflecting and rewriting...")
+                response = ai_respond(category, ticket_text, sentiment, previous_response=response, critic_feedback="Increase empathy and ensure resolution is extremely clear.")
+                critic_score = critic_agent(response, ticket_text)
+                print(f"    [Critic] New response score: {critic_score:.2f}")
+
         result = client.step("respond", response, confidence=0.85)
         steps += 1
         rewards.append(result["reward"])

@@ -99,3 +99,9 @@ desktop.ini
 *.pth
 *.onnx
 *.pkl
+
+# Local run scripts
+run_local.ps1
+
+# Local run scripts
+run_local.ps1

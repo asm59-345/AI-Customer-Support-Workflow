@@ -77,6 +77,8 @@ class Observation(BaseModel):
     task_id: str = Field(default="task_easy", description="Current task ID")
     category: Optional[str] = Field(default=None, description="Revealed ticket category")
     hint: Optional[str] = Field(default=None, description="Optional hint for agent")
+    difficulty_level: Optional[str] = Field(default=None, description="Difficulty of the environment")
+    domain: Optional[str] = Field(default=None, description="Domain of the scenario (e.g. E-commerce)")
 
     class Config:
         json_schema_extra = {
@@ -132,6 +134,12 @@ class EnvState(BaseModel):
     cumulative_reward: float
     started_at: float
     is_done: bool
+    difficulty_level: str = "normal"
+    domain: str = "general"
+    resolution_rate: float = 0.0
+    avg_steps_per_ticket: float = 0.0
+    escalation_accuracy: float = 0.0
+    sentiment_improvement: float = 0.0
 
 
 class TaskDefinition(BaseModel):
@@ -164,6 +172,12 @@ class ResetRequest(BaseModel):
     """Optional body for POST /reset"""
     task_id: Optional[str] = Field(default="task_easy")
     ticket_index: Optional[int] = Field(default=None, description="Force a specific ticket (for testing)")
+    custom_ticket_text: Optional[str] = Field(default=None, description="Dynamically generated ticket text")
+    custom_ticket_category: Optional[str] = Field(default=None, description="Dynamically generated ticket category")
+    domain: Optional[str] = Field(default=None, description="Custom domain for the generated ticket")
+    difficulty: Optional[str] = Field(default=None, description="Custom difficulty level")
+    noise_level: Optional[float] = Field(default=0.0, description="Noise level to inject")
+    sentiment: Optional[str] = Field(default=None, description="Custom sentiment")
 
 
 class HealthResponse(BaseModel):

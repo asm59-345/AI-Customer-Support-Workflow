@@ -16,7 +16,7 @@ app_port: 7860
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker)](https://docker.com)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?style=for-the-badge)](https://fastapi.tiangolo.com)
 
-> A production-ready **reinforcement learning environment** where AI agents learn to handle real-world customer support tickets across **10 CX workflow types**.
+> A production-ready **self-evolving reinforcement learning environment** where AI agents learn to handle real-world customer support tickets across **10 CX workflow types**. Featuring a **DistilBERT Critic Agent** and multi-dimensional reward logic for robust policy learning.
 
 ---
 
@@ -137,7 +137,10 @@ docker run -p 7860:7860 ai-support-env
 
 ---
 
-## 📊 Reward Design
+## 📊 Multi-Dimensional Reward Design
+
+The reward utilizes a multi-dimensional strategy, allocating points dynamically based on sub-task success with severe penalties for hallucinations and negative sentiment escalation:
+- Reward = 0.3(classification) + 0.3(response quality) + 0.2(sentiment handling) + 0.2(efficiency)
 
 | Action | Condition | Reward |
 |--------|-----------|--------|
@@ -180,12 +183,11 @@ docker run -p 7860:7860 ai-support-env
 
 ## 🔮 Future Scope (Round 2)
 
-- [ ] Sentiment analysis integration
+- [x] DistilBERT Integration for offline sentiment & classification
+- [x] Multi-agent Critic loops (Self-Reflecting agents)
+- [x] Dynamic Curriculum Learning (Difficulty Scaling based on rolling performance limits)
 - [ ] Multi-language ticket support  
-- [ ] Memory-based conversation agent
-- [ ] Priority queuing (SLA-based)
 - [ ] Dataset integration (Amazon reviews, support logs)
-- [ ] Multi-agent coordination
 
 ---
 
